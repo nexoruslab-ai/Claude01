@@ -7,17 +7,20 @@ export const EMPRESAS = [
   'OFAI'
 ];
 
-// MÉTODOS DE COBRO/PAGO
+// MÉTODOS DE COBRO/PAGO (alfabéticamente ordenados)
 export const METODOS_COBRO = [
-  'Banco Patagonia',
   'Banco Galicia',
-  'Mercado Pago',
-  'Mercury',
-  'Stripe',
+  'Banco Patagonia',
   'Binance',
+  'Cuenta Just',
   'Efectivo ARS',
   'Efectivo USD',
-  'Cuenta Just'
+  'LemonCash',
+  'Mercado Pago',
+  'Mercury',
+  'PayPal',
+  'Stripe',
+  'Wallbit'
 ];
 
 // TIPOS DE PAGO
