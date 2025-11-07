@@ -1,8 +1,12 @@
 import React, { useState, useMemo } from 'react';
 import { formatearMoneda, formatearFecha } from '../utils/calculations.js';
 import { EMPRESAS, CATEGORIAS, MONEDAS } from '../data/constants.js';
+import { useTranslation } from '../utils/i18n.js';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 
-const Historial = ({ ingresos, gastos, onEliminar }) => {
+const Historial = ({ ingresos, gastos, onEliminar, onEditar, language, displayCurrency, exchangeRate }) => {
+  const { t } = useTranslation(language);
+  const rate = exchangeRate?.USD_ARS || 1427.99;
   const [filtros, setFiltros] = useState({
     tipo: 'todos', // todos, ingresos, gastos
     empresa: 'todas',
@@ -68,7 +72,10 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
   };
 
   const handleEliminar = (id, tipo) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta transacción?')) {
+    const mensaje = language === 'es'
+      ? '¿Estás seguro de que deseas eliminar esta transacción?'
+      : 'Are you sure you want to delete this transaction?';
+    if (window.confirm(mensaje)) {
       onEliminar(id, tipo);
     }
   };
@@ -79,7 +86,7 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
     return (
       <div
         key={transaccion.id}
-        className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+        className="glass-card dark:glass-card p-4 rounded-premium shadow-elevation-1 hover:shadow-elevation-2 transition-premium border border-white/10"
       >
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
@@ -87,28 +94,28 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   esIngreso
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
                 }`}
               >
-                {esIngreso ? '↑ Ingreso' : '↓ Gasto'}
+                {esIngreso ? `↑ ${t('history.income') || 'Ingreso'}` : `↓ ${t('history.expense') || 'Gasto'}`}
               </span>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-dark-textSecondary dark:text-dark-textSecondary">
                 {formatearFecha(transaccion.fecha)}
               </span>
             </div>
 
-            <div className="font-semibold text-gray-800 mb-1">
+            <div className="font-semibold text-dark-text dark:text-dark-text mb-1">
               {esIngreso ? transaccion.empresa : transaccion.categoria}
             </div>
 
             {transaccion.descripcion && (
-              <div className="text-sm text-gray-600 mb-1">
+              <div className="text-sm text-dark-textSecondary dark:text-dark-textSecondary mb-1">
                 {transaccion.descripcion}
               </div>
             )}
 
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+            <div className="flex flex-wrap gap-2 text-xs text-dark-textSecondary dark:text-dark-textSecondary">
               {esIngreso && (
                 <>
                   <span>📍 {transaccion.metodoCobro}</span>
@@ -124,18 +131,30 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
 
           <div className="text-right ml-4">
             <div
-              className={`text-xl font-bold ${
-                esIngreso ? 'text-green-600' : 'text-red-600'
+              className={`text-xl font-bold font-mono mb-3 ${
+                esIngreso ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
               }`}
             >
-              {esIngreso ? '+' : '-'}{formatearMoneda(transaccion.monto, transaccion.moneda)}
+              {esIngreso ? '+' : '-'}{formatearMoneda(transaccion.monto, displayCurrency, rate)}
             </div>
-            <button
-              onClick={() => handleEliminar(transaccion.id, transaccion.tipo)}
-              className="mt-2 text-red-500 hover:text-red-700 text-sm"
-            >
-              🗑️ Eliminar
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => onEditar(transaccion, transaccion.tipo)}
+                className="glass-card dark:glass-card px-3 py-1.5 rounded-button text-gold hover:shadow-elevation-1 transition-premium border border-gold/20 flex items-center gap-1"
+                title={t('history.edit') || 'Editar'}
+              >
+                <PencilIcon className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('history.edit') || 'Editar'}</span>
+              </button>
+              <button
+                onClick={() => handleEliminar(transaccion.id, transaccion.tipo)}
+                className="glass-card dark:glass-card px-3 py-1.5 rounded-button text-red-500 hover:shadow-elevation-1 transition-premium border border-red-500/20 flex items-center gap-1"
+                title={t('history.delete') || 'Eliminar'}
+              >
+                <TrashIcon className="w-4 h-4" />
+                <span className="text-xs font-medium">{t('history.delete') || 'Eliminar'}</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -143,132 +162,132 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
   };
 
   return (
-    <div className="space-y-4 pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">Historial</h1>
-        <p className="text-indigo-100">
-          {transaccionesFiltradas.length} de {transacciones.length} transacciones
+    <div className="space-y-4 pb-20 animate-fadeIn">
+      {/* Header Premium */}
+      <div className="glass-card dark:glass-card rounded-premium p-6 shadow-elevation-2 border border-gold/20">
+        <h1 className="text-4xl font-bold text-gradient-gold mb-2">{t('history.title') || 'Historial'}</h1>
+        <p className="text-dark-textSecondary dark:text-dark-textSecondary">
+          {transaccionesFiltradas.length} {t('history.of') || 'de'} {transacciones.length} {t('history.transactions') || 'transacciones'}
         </p>
       </div>
 
       {/* Botón para mostrar/ocultar filtros */}
       <button
         onClick={() => setMostrarFiltros(!mostrarFiltros)}
-        className="w-full bg-white p-4 rounded-lg shadow text-left font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        className="w-full glass-card dark:glass-card p-4 rounded-premium shadow-elevation-1 text-left font-medium text-dark-text dark:text-dark-text hover:shadow-elevation-2 transition-premium border border-white/10"
       >
-        🔍 Filtros {mostrarFiltros ? '▲' : '▼'}
+        🔍 {t('history.filters') || 'Filtros'} {mostrarFiltros ? '▲' : '▼'}
       </button>
 
       {/* Panel de filtros */}
       {mostrarFiltros && (
-        <div className="bg-white p-4 rounded-lg shadow space-y-3">
+        <div className="glass-card dark:glass-card p-4 rounded-premium shadow-elevation-1 space-y-3 border border-white/10">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {/* Filtro por tipo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo
+              <label className="block text-sm font-medium text-dark-textSecondary dark:text-dark-textSecondary mb-1">
+                {t('history.filterType') || 'Tipo'}
               </label>
               <select
                 name="tipo"
                 value={filtros.tipo}
                 onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
               >
-                <option value="todos">Todos</option>
-                <option value="ingreso">Ingresos</option>
-                <option value="gasto">Gastos</option>
+                <option value="todos" className="dark:bg-gray-800">{t('history.all') || 'Todos'}</option>
+                <option value="ingreso" className="dark:bg-gray-800">{t('history.incomes') || 'Ingresos'}</option>
+                <option value="gasto" className="dark:bg-gray-800">{t('history.expenses') || 'Gastos'}</option>
               </select>
             </div>
 
             {/* Filtro por empresa */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Empresa
+              <label className="block text-sm font-medium text-dark-textSecondary dark:text-dark-textSecondary mb-1">
+                {t('history.filterCompany') || 'Empresa'}
               </label>
               <select
                 name="empresa"
                 value={filtros.empresa}
                 onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
               >
-                <option value="todas">Todas</option>
+                <option value="todas" className="dark:bg-gray-800">{t('history.allCompanies') || 'Todas'}</option>
                 {EMPRESAS.map(empresa => (
-                  <option key={empresa} value={empresa}>{empresa}</option>
+                  <option key={empresa} value={empresa} className="dark:bg-gray-800">{empresa}</option>
                 ))}
               </select>
             </div>
 
             {/* Filtro por categoría */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoría
+              <label className="block text-sm font-medium text-dark-textSecondary dark:text-dark-textSecondary mb-1">
+                {t('history.filterCategory') || 'Categoría'}
               </label>
               <select
                 name="categoria"
                 value={filtros.categoria}
                 onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
               >
-                <option value="todas">Todas</option>
+                <option value="todas" className="dark:bg-gray-800">{t('history.allCategories') || 'Todas'}</option>
                 {CATEGORIAS.map(categoria => (
-                  <option key={categoria} value={categoria}>{categoria}</option>
+                  <option key={categoria} value={categoria} className="dark:bg-gray-800">{categoria}</option>
                 ))}
               </select>
             </div>
 
             {/* Filtro por moneda */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Moneda
+              <label className="block text-sm font-medium text-dark-textSecondary dark:text-dark-textSecondary mb-1">
+                {t('history.filterCurrency') || 'Moneda'}
               </label>
               <select
                 name="moneda"
                 value={filtros.moneda}
                 onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
               >
-                <option value="todas">Todas</option>
+                <option value="todas" className="dark:bg-gray-800">{t('history.allCurrencies') || 'Todas'}</option>
                 {MONEDAS.map(moneda => (
-                  <option key={moneda} value={moneda}>{moneda}</option>
+                  <option key={moneda} value={moneda} className="dark:bg-gray-800">{moneda}</option>
                 ))}
               </select>
             </div>
 
             {/* Filtro fecha desde */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Desde
+              <label className="block text-sm font-medium text-dark-textSecondary dark:text-dark-textSecondary mb-1">
+                {t('history.filterFrom') || 'Desde'}
               </label>
               <input
                 type="date"
                 name="fechaDesde"
                 value={filtros.fechaDesde}
                 onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
               />
             </div>
 
             {/* Filtro fecha hasta */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hasta
+              <label className="block text-sm font-medium text-dark-textSecondary dark:text-dark-textSecondary mb-1">
+                {t('history.filterTo') || 'Hasta'}
               </label>
               <input
                 type="date"
                 name="fechaHasta"
                 value={filtros.fechaHasta}
                 onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-gold focus:border-transparent text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors"
               />
             </div>
           </div>
 
           <button
             onClick={limpiarFiltros}
-            className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            className="w-full glass-card dark:glass-card text-dark-text dark:text-dark-text py-2 px-4 rounded-button hover:shadow-elevation-1 transition-premium text-sm font-medium border border-white/10"
           >
-            Limpiar Filtros
+            {t('history.clearFilters') || 'Limpiar Filtros'}
           </button>
         </div>
       )}
@@ -279,12 +298,14 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
           {transaccionesFiltradas.map(transaccion => renderTransaccion(transaccion))}
         </div>
       ) : (
-        <div className="bg-white p-8 rounded-lg shadow text-center">
-          <p className="text-gray-500 text-lg mb-2">No hay transacciones</p>
-          <p className="text-gray-400 text-sm">
+        <div className="glass-card dark:glass-card p-8 rounded-premium shadow-elevation-1 text-center border border-white/10">
+          <p className="text-dark-textSecondary dark:text-dark-textSecondary text-lg mb-2">
+            {t('history.noTransactions') || 'No hay transacciones'}
+          </p>
+          <p className="text-dark-textSecondary dark:text-dark-textSecondary text-sm opacity-75">
             {transacciones.length > 0
-              ? 'Prueba ajustando los filtros'
-              : 'Comienza agregando ingresos y gastos'}
+              ? (t('history.tryAdjustingFilters') || 'Prueba ajustando los filtros')
+              : (t('history.startAdding') || 'Comienza agregando ingresos y gastos')}
           </p>
         </div>
       )}

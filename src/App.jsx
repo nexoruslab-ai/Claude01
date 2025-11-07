@@ -286,7 +286,7 @@ function App() {
               {/* Selector de moneda */}
               <button
                 onClick={handleToggleCurrency}
-                className="glass-card dark:glass-card px-4 py-2 rounded-button hover:shadow-elevation-1 transition-premium flex items-center gap-2 border border-white/10"
+                className="glass-card dark:glass-card px-3 py-2 rounded-button hover:shadow-elevation-1 transition-premium flex items-center justify-center gap-1.5 border border-white/10 min-w-[70px]"
                 title={`Ver en ${displayCurrency === 'USD' ? 'ARS' : 'USD'}`}
               >
                 <span className="font-mono font-semibold text-gold text-sm">{displayCurrency}</span>
@@ -295,17 +295,17 @@ function App() {
               {/* Toggle de idioma */}
               <button
                 onClick={handleToggleLanguage}
-                className="glass-card dark:glass-card p-2 rounded-button hover:shadow-elevation-1 transition-premium border border-white/10"
+                className="glass-card dark:glass-card px-3 py-2 rounded-button hover:shadow-elevation-1 transition-premium flex items-center justify-center gap-1.5 border border-white/10 min-w-[70px]"
                 title={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
               >
-                <LanguageIcon className="w-5 h-5 text-gold" />
-                <span className="ml-1 text-xs font-semibold text-gold">{language.toUpperCase()}</span>
+                <LanguageIcon className="w-4 h-4 text-gold" />
+                <span className="text-xs font-semibold text-gold">{language.toUpperCase()}</span>
               </button>
 
               {/* Toggle de tema */}
               <button
                 onClick={handleToggleTheme}
-                className="glass-card dark:glass-card p-2 rounded-button hover:shadow-elevation-1 transition-premium border border-white/10"
+                className="glass-card dark:glass-card px-3 py-2 rounded-button hover:shadow-elevation-1 transition-premium flex items-center justify-center border border-white/10 min-w-[70px]"
                 title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
               >
                 {theme === 'dark' ? (
