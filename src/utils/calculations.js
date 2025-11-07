@@ -1,4 +1,5 @@
 import { PRIORIDADES } from '../data/constants.js';
+import { convertUSDtoARS } from './exchangeRate.js';
 
 /**
  * SISTEMA DE CASCADA AUTOMÁTICA - LÓGICA CORE
@@ -7,20 +8,33 @@ import { PRIORIDADES } from '../data/constants.js';
  * 1. El 40% de TODOS los ingresos se aparta automáticamente SIEMPRE
  * 2. El 60% restante se distribuye en cascada por 4 niveles de prioridad
  * 3. Una prioridad solo recibe dinero si las anteriores están completadas
+ *
+ * IMPORTANTE: Todos los cálculos internos se hacen en USD (moneda base)
+ * Las conversiones a ARS solo se hacen para visualización
  */
 
 /**
- * Calcula el total de ingresos
+ * Calcula el total de ingresos en USD
+ * SIEMPRE usa montoUSD para cálculos correctos
  */
 export const calcularTotalIngresos = (ingresos) => {
-  return ingresos.reduce((total, ingreso) => total + Number(ingreso.monto), 0);
+  return ingresos.reduce((total, ingreso) => {
+    // Usar montoUSD si existe, sino usar monto (compatibilidad)
+    const monto = ingreso.montoUSD !== undefined ? ingreso.montoUSD : ingreso.monto;
+    return total + Number(monto);
+  }, 0);
 };
 
 /**
- * Calcula el total de gastos
+ * Calcula el total de gastos en USD
+ * SIEMPRE usa montoUSD para cálculos correctos
  */
 export const calcularTotalGastos = (gastos) => {
-  return gastos.reduce((total, gasto) => total + Number(gasto.monto), 0);
+  return gastos.reduce((total, gasto) => {
+    // Usar montoUSD si existe, sino usar monto (compatibilidad)
+    const monto = gasto.montoUSD !== undefined ? gasto.montoUSD : gasto.monto;
+    return total + Number(monto);
+  }, 0);
 };
 
 /**
@@ -38,7 +52,7 @@ export const calcularDisponible60 = (totalIngresos) => {
 };
 
 /**
- * Suma gastos por categoría
+ * Suma gastos por categoría en USD
  */
 export const calcularGastosPorCategoria = (gastos) => {
   const gastosPorCategoria = {};
@@ -48,7 +62,9 @@ export const calcularGastosPorCategoria = (gastos) => {
     if (!gastosPorCategoria[categoria]) {
       gastosPorCategoria[categoria] = 0;
     }
-    gastosPorCategoria[categoria] += Number(gasto.monto);
+    // Usar montoUSD si existe, sino monto
+    const monto = gasto.montoUSD !== undefined ? gasto.montoUSD : gasto.monto;
+    gastosPorCategoria[categoria] += Number(monto);
   });
 
   return gastosPorCategoria;
@@ -141,7 +157,7 @@ export const calcularDistribucionCascada = (totalIngresos, gastosPorCategoria) =
 };
 
 /**
- * Calcula ingresos por empresa
+ * Calcula ingresos por empresa en USD
  */
 export const calcularIngresosPorEmpresa = (ingresos) => {
   const ingresosPorEmpresa = {};
@@ -151,7 +167,9 @@ export const calcularIngresosPorEmpresa = (ingresos) => {
     if (!ingresosPorEmpresa[empresa]) {
       ingresosPorEmpresa[empresa] = 0;
     }
-    ingresosPorEmpresa[empresa] += Number(ingreso.monto);
+    // Usar montoUSD si existe, sino monto
+    const monto = ingreso.montoUSD !== undefined ? ingreso.montoUSD : ingreso.monto;
+    ingresosPorEmpresa[empresa] += Number(monto);
   });
 
   return ingresosPorEmpresa;
@@ -186,15 +204,29 @@ export const calcularBalanceGeneral = (ingresos, gastos) => {
 };
 
 /**
- * Formatear moneda
+ * Formatear moneda con conversión automática
+ * @param {number} montoUSD - Monto en USD (moneda base)
+ * @param {string} displayCurrency - Moneda para mostrar ('USD' o 'ARS')
+ * @param {number} exchangeRate - Tasa de cambio USD/ARS
+ * @param {string} locale - Locale para formateo
  */
-export const formatearMoneda = (monto, moneda = 'USD') => {
-  return new Intl.NumberFormat('es-AR', {
+export const formatearMoneda = (montoUSD, displayCurrency = 'USD', exchangeRate = null, locale = 'es-AR') => {
+  let montoFinal = montoUSD;
+
+  // Si se quiere mostrar en ARS y hay tasa de cambio, convertir
+  if (displayCurrency === 'ARS' && exchangeRate) {
+    montoFinal = convertUSDtoARS(montoUSD, exchangeRate);
+  }
+
+  // Para USD, mostrar decimales, para ARS no
+  const fractionDigits = displayCurrency === 'USD' ? 2 : 0;
+
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
-    currency: moneda,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  }).format(monto);
+    currency: displayCurrency,
+    minimumFractionDigits: fractionDigits,
+    maximumFractionDigits: fractionDigits
+  }).format(montoFinal);
 };
 
 /**
@@ -206,4 +238,14 @@ export const formatearFecha = (fecha) => {
     month: '2-digit',
     year: 'numeric'
   });
+};
+
+/**
+ * Convertir monto según preferencia de visualización
+ */
+export const convertirParaMostrar = (montoUSD, displayCurrency, exchangeRate) => {
+  if (displayCurrency === 'ARS' && exchangeRate) {
+    return convertUSDtoARS(montoUSD, exchangeRate);
+  }
+  return montoUSD;
 };
