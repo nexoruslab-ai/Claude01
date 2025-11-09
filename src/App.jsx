@@ -246,12 +246,35 @@ function App() {
   };
 
   const handleSavePriorities = (nuevasPrioridades) => {
-    setPrioridades(nuevasPrioridades);
-    savePriorities(nuevasPrioridades);
-    showToast(
-      language === 'es' ? 'Prioridades actualizadas exitosamente' : 'Priorities updated successfully',
-      'success'
-    );
+    console.log('🔵 App.jsx - Recibiendo nuevas prioridades para guardar:', nuevasPrioridades);
+
+    // Guardar en localStorage primero
+    const guardadoExitoso = savePriorities(nuevasPrioridades);
+
+    if (guardadoExitoso) {
+      console.log('✅ App.jsx - Guardado exitoso, actualizando estado');
+
+      // Actualizar estado local (esto forzará re-render)
+      setPrioridades(nuevasPrioridades);
+
+      // Cerrar modal
+      setMostrarEditorPrioridades(false);
+
+      // Mostrar toast de éxito
+      showToast(
+        language === 'es' ? '✅ Prioridades actualizadas exitosamente' : '✅ Priorities updated successfully',
+        'success'
+      );
+
+      console.log('✅ App.jsx - Estado actualizado, modal cerrado');
+    } else {
+      console.error('❌ App.jsx - Error al guardar');
+      // Error guardando
+      showToast(
+        language === 'es' ? '❌ Error al guardar cambios' : '❌ Error saving changes',
+        'error'
+      );
+    }
   };
 
   // Mostrar toast

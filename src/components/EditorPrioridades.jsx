@@ -186,8 +186,8 @@ const EditorPrioridades = ({ priorities, onSave, onClose, language }) => {
   };
 
   const handleGuardarCambios = () => {
+    // Solo guardar, el padre se encarga de cerrar el modal
     onSave(prioridadesLocales);
-    onClose();
   };
 
   return (

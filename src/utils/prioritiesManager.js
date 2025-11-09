@@ -9,10 +9,13 @@ export const loadPriorities = () => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
-      return JSON.parse(stored);
+      const parsed = JSON.parse(stored);
+      console.log('🔵 Cargando prioridades desde localStorage:', parsed);
+      return parsed;
     }
+    console.log('🔵 No hay prioridades guardadas, usando defaults');
   } catch (error) {
-    console.error('Error loading priorities:', error);
+    console.error('❌ Error loading priorities:', error);
   }
   return PRIORIDADES_DEFAULT;
 };
@@ -22,10 +25,12 @@ export const loadPriorities = () => {
  */
 export const savePriorities = (priorities) => {
   try {
+    console.log('🔵 Guardando prioridades:', priorities);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(priorities));
+    console.log('✅ Prioridades guardadas en localStorage');
     return true;
   } catch (error) {
-    console.error('Error saving priorities:', error);
+    console.error('❌ Error saving priorities:', error);
     return false;
   }
 };
@@ -37,11 +42,31 @@ export const addCategory = (priorities, prioridadNivel, nuevaCategoria) => {
   // Encontrar el último numero usado
   const maxNumero = Math.max(...priorities.map(p => p.numero));
 
-  // Obtener info de la prioridad
-  const prioridadInfo = priorities.find(p => p.prioridad === prioridadNivel && !p.esSagrado);
+  // Obtener info de la prioridad (buscar cualquier categoría de ese nivel, incluso sagrada)
+  let prioridadInfo = priorities.find(p => p.prioridad === prioridadNivel && !p.esSagrado);
 
+  // Si no hay categorías normales, buscar cualquier categoría de ese nivel (incluyendo sagradas)
   if (!prioridadInfo) {
-    throw new Error('Prioridad no encontrada');
+    prioridadInfo = priorities.find(p => p.prioridad === prioridadNivel);
+  }
+
+  // Si aún no se encuentra (nivel nuevo sin categorías), usar valores por defecto
+  if (!prioridadInfo) {
+    // Colores por defecto según nivel
+    const coloresPorNivel = {
+      1: { color: '#dc2626', colorBg: '#fee2e2' },
+      2: { color: '#ea580c', colorBg: '#ffedd5' },
+      3: { color: '#ca8a04', colorBg: '#fef9c3' },
+      4: { color: '#16a34a', colorBg: '#dcfce7' }
+    };
+
+    const colores = coloresPorNivel[prioridadNivel] || { color: '#6b7280', colorBg: '#f3f4f6' };
+
+    prioridadInfo = {
+      color: colores.color,
+      colorBg: colores.colorBg,
+      nivelNombre: `PRIORIDAD ${String(prioridadNivel).padStart(2, '0')}`
+    };
   }
 
   const nuevaPrioridad = {
@@ -135,8 +160,14 @@ export const deletePriorityLevel = (priorities, prioridadNivel) => {
     throw new Error('No se puede eliminar la Prioridad 01 (contiene el Sagrado 40%)');
   }
 
+  console.log(`🔵 Eliminando todas las categorías del nivel ${prioridadNivel}`);
+
   // Eliminar todas las categorías de ese nivel
-  return priorities.filter(p => p.prioridad !== prioridadNivel);
+  const nuevasPrioridades = priorities.filter(p => p.prioridad !== prioridadNivel);
+
+  console.log(`✅ Nivel ${prioridadNivel} eliminado. Prioridades restantes:`, nuevasPrioridades.length);
+
+  return nuevasPrioridades;
 };
 
 /**
