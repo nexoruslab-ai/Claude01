@@ -40,11 +40,15 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
 
   const renderFilaCategoria = (item) => {
     const estaCompleto = item.estado === 'OK';
+    // Obtener nombre traducido: si idioma es inglés y existe nombreEn, usarlo; sino usar nombre español
+    const nombreCategoria = (language === 'en' && item.nombreEn) ? item.nombreEn : item.categoria;
+    // Agregar emoji si existe
+    const displayName = item.emoji ? `${item.emoji} ${nombreCategoria}` : nombreCategoria;
 
     return (
       <tr key={item.numero} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.numero}</td>
-        <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{item.categoria}</td>
+        <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{displayName}</td>
         <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
           {formatearMoneda(item.meta, displayCurrency, rate)}
         </td>
@@ -155,7 +159,7 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
               className="px-4 py-2 bg-gradient-gold text-black rounded-button font-semibold hover:brightness-110 transition-all shadow-elevation-1 flex items-center gap-2 whitespace-nowrap"
             >
               <CogIcon className="w-5 h-5" />
-              <span className="hidden sm:inline">{t('priorities.editor.manage') || 'Gestionar Prioridades'}</span>
+              <span className="hidden sm:inline">{t('priorities.customize')}</span>
               <span className="sm:hidden">⚙️</span>
             </button>
           )}
