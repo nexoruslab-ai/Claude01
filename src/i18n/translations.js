@@ -23,6 +23,7 @@ export const translations = {
     priorities: {
       title: "Sistema de Prioridades",
       subtitle: "Distribución en Cascada Automática",
+      customize: "Personalizar",
       howItWorks: "¿Cómo funciona la cascada?",
       explanation: [
         "El 60% restante se distribuye en orden estricto de prioridad",
@@ -159,6 +160,7 @@ export const translations = {
     priorities: {
       title: "Priority System",
       subtitle: "Automatic Cascade Distribution",
+      customize: "Customize",
       howItWorks: "How does the cascade work?",
       explanation: [
         "The remaining 60% is distributed in strict priority order",
