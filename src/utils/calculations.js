@@ -15,12 +15,20 @@ import { convertUSDtoARS } from './exchangeRate.js';
 
 /**
  * Calcula el total de ingresos en USD
- * SIEMPRE usa montoUSD para cálculos correctos
+ * SIEMPRE usa montoComision (lo que realmente recibes) para cálculos correctos
+ * Si es ingreso con comisión empresarial, usa montoComision, NO montoTotal
  */
 export const calcularTotalIngresos = (ingresos) => {
   return ingresos.reduce((total, ingreso) => {
-    // Usar montoUSD si existe, sino usar monto (compatibilidad)
-    const monto = ingreso.montoUSD !== undefined ? ingreso.montoUSD : ingreso.monto;
+    // Prioridad: montoComision > montoUSD > monto
+    let monto;
+    if (ingreso.montoComision !== undefined) {
+      monto = ingreso.montoComision; // Para ingresos con comisión
+    } else if (ingreso.montoUSD !== undefined) {
+      monto = ingreso.montoUSD; // Compatibilidad
+    } else {
+      monto = ingreso.monto; // Fallback
+    }
     return total + Number(monto);
   }, 0);
 };
@@ -157,7 +165,7 @@ export const calcularDistribucionCascada = (totalIngresos, gastosPorCategoria) =
 };
 
 /**
- * Calcula ingresos por empresa en USD
+ * Calcula ingresos por empresa en USD (solo comisiones personales)
  */
 export const calcularIngresosPorEmpresa = (ingresos) => {
   const ingresosPorEmpresa = {};
@@ -167,12 +175,70 @@ export const calcularIngresosPorEmpresa = (ingresos) => {
     if (!ingresosPorEmpresa[empresa]) {
       ingresosPorEmpresa[empresa] = 0;
     }
-    // Usar montoUSD si existe, sino monto
-    const monto = ingreso.montoUSD !== undefined ? ingreso.montoUSD : ingreso.monto;
+    // Usar montoComision si existe (ingresos empresariales), sino montoUSD/monto
+    let monto;
+    if (ingreso.montoComision !== undefined) {
+      monto = ingreso.montoComision;
+    } else if (ingreso.montoUSD !== undefined) {
+      monto = ingreso.montoUSD;
+    } else {
+      monto = ingreso.monto;
+    }
     ingresosPorEmpresa[empresa] += Number(monto);
   });
 
   return ingresosPorEmpresa;
+};
+
+/**
+ * Calcula métricas empresariales detalladas
+ * Muestra facturación total vs comisiones personales por empresa
+ */
+export const calcularMetricasEmpresariales = (ingresos) => {
+  const metricasPorEmpresa = {};
+
+  ingresos.forEach(ingreso => {
+    const empresa = ingreso.empresa;
+
+    if (!metricasPorEmpresa[empresa]) {
+      metricasPorEmpresa[empresa] = {
+        facturacionTotal: 0,
+        comisionesPersonales: 0,
+        cantidadOperaciones: 0,
+        cantidadConComision: 0,
+        porcentajeComisionPromedio: 0
+      };
+    }
+
+    const esComision = ingreso.esComision || false;
+    const montoTotal = ingreso.montoTotal || ingreso.monto || 0;
+    const montoComision = ingreso.montoComision || ingreso.monto || 0;
+    const porcentajeComision = ingreso.porcentajeComision || 100;
+
+    // Acumular facturación total
+    metricasPorEmpresa[empresa].facturacionTotal += Number(montoTotal);
+
+    // Acumular comisiones personales (lo que realmente recibes)
+    metricasPorEmpresa[empresa].comisionesPersonales += Number(montoComision);
+
+    // Contar operaciones
+    metricasPorEmpresa[empresa].cantidadOperaciones += 1;
+
+    if (esComision) {
+      metricasPorEmpresa[empresa].cantidadConComision += 1;
+    }
+  });
+
+  // Calcular porcentaje promedio de comisión por empresa
+  Object.keys(metricasPorEmpresa).forEach(empresa => {
+    const metrics = metricasPorEmpresa[empresa];
+    if (metrics.facturacionTotal > 0) {
+      metrics.porcentajeComisionPromedio =
+        (metrics.comisionesPersonales / metrics.facturacionTotal) * 100;
+    }
+  });
+
+  return metricasPorEmpresa;
 };
 
 /**
@@ -189,6 +255,7 @@ export const calcularBalanceGeneral = (ingresos, gastos) => {
   const gastosPorCategoria = calcularGastosPorCategoria(gastos);
   const distribucion = calcularDistribucionCascada(totalIngresos, gastosPorCategoria);
   const ingresosPorEmpresa = calcularIngresosPorEmpresa(ingresos);
+  const metricasEmpresariales = calcularMetricasEmpresariales(ingresos);
 
   return {
     totalIngresos,
@@ -199,7 +266,8 @@ export const calcularBalanceGeneral = (ingresos, gastos) => {
     disponibleReal,
     distribucion,
     ingresosPorEmpresa,
-    gastosPorCategoria
+    gastosPorCategoria,
+    metricasEmpresariales
   };
 };
 

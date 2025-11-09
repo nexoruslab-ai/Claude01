@@ -20,7 +20,8 @@ const Dashboard = ({ balance, onNuevaTransaccion, language, displayCurrency, exc
     sagrado40,
     disponible60,
     disponibleReal,
-    ingresosPorEmpresa
+    ingresosPorEmpresa,
+    metricasEmpresariales
   } = balance;
 
   const rate = exchangeRate?.USD_ARS || 1427.99;
@@ -228,6 +229,98 @@ const Dashboard = ({ balance, onNuevaTransaccion, language, displayCurrency, exc
         <div className="glass-card dark:glass-card rounded-premium p-12 text-center shadow-elevation-1 border border-white/10">
           <p className="text-dark-textSecondary dark:text-dark-textSecondary text-lg mb-4">{t('dashboard.noIncome')}</p>
           <p className="text-dark-textSecondary dark:text-dark-textSecondary text-sm">{t('dashboard.startAdding')}</p>
+        </div>
+      )}
+
+      {/* Métricas Empresariales - Facturación vs Comisiones */}
+      {metricasEmpresariales && Object.keys(metricasEmpresariales).length > 0 && (
+        <div className="glass-card dark:glass-card rounded-premium p-6 shadow-elevation-1 border border-white/10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-dark-text dark:text-dark-text flex items-center gap-2">
+              <span className="text-2xl">💼</span>
+              Métricas Empresariales
+            </h2>
+            <p className="text-xs text-dark-textSecondary dark:text-dark-textSecondary">
+              Facturación Total vs Comisiones Personales
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(metricasEmpresariales).map(([empresa, metrics]) => {
+              const tieneComisiones = metrics.cantidadConComision > 0;
+              const porcentaje = metrics.porcentajeComisionPromedio;
+
+              return (
+                <div
+                  key={empresa}
+                  className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 backdrop-blur-xl rounded-xl p-4 border border-gray-200 dark:border-gray-700/50 hover:shadow-elevation-1 transition-premium"
+                >
+                  {/* Nombre de empresa */}
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-bold text-dark-text dark:text-dark-text text-sm">
+                      {empresa}
+                    </h3>
+                    {tieneComisiones && (
+                      <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-500 text-xs rounded-full font-semibold">
+                        {porcentaje.toFixed(1)}%
+                      </span>
+                    )}
+                  </div>
+
+                  {tieneComisiones ? (
+                    <>
+                      {/* Facturación Total */}
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          📊 Facturación Total
+                        </p>
+                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400 font-mono">
+                          {formatearMoneda(metrics.facturacionTotal, displayCurrency, rate)}
+                        </p>
+                      </div>
+
+                      {/* Comisión Personal */}
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          💰 Comisión Personal
+                        </p>
+                        <p className="text-xl font-bold text-green-600 dark:text-green-500 font-mono">
+                          {formatearMoneda(metrics.comisionesPersonales, displayCurrency, rate)}
+                        </p>
+                      </div>
+
+                      {/* Info adicional */}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {metrics.cantidadOperaciones} operacion{metrics.cantidadOperaciones !== 1 ? 'es' : ''}
+                          {' '}({metrics.cantidadConComision} con comisión)
+                        </p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {/* Ingreso Normal (sin comisiones) */}
+                      <div className="mb-2">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                          💵 Ingresos Totales
+                        </p>
+                        <p className="text-xl font-bold text-green-600 dark:text-green-500 font-mono">
+                          {formatearMoneda(metrics.comisionesPersonales, displayCurrency, rate)}
+                        </p>
+                      </div>
+
+                      {/* Info adicional */}
+                      <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {metrics.cantidadOperaciones} operacion{metrics.cantidadOperaciones !== 1 ? 'es' : ''}
+                        </p>
+                      </div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 

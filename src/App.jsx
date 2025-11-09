@@ -56,14 +56,40 @@ function App() {
     fetchExchangeRate();
   }, []);
 
-  // Cargar datos desde localStorage
+  // Cargar datos desde localStorage con migración automática
   useEffect(() => {
     try {
       const ingresosGuardados = localStorage.getItem(STORAGE_KEY_INGRESOS);
       const gastosGuardados = localStorage.getItem(STORAGE_KEY_GASTOS);
 
       if (ingresosGuardados) {
-        setIngresos(JSON.parse(ingresosGuardados));
+        const ingresosParseados = JSON.parse(ingresosGuardados);
+
+        // MIGRACIÓN AUTOMÁTICA: Agregar campos de comisión a ingresos antiguos
+        const ingresosMigrados = ingresosParseados.map(ingreso => {
+          // Si el ingreso ya tiene los campos nuevos, no hacer nada
+          if (ingreso.hasOwnProperty('esComision')) {
+            return ingreso;
+          }
+
+          // Si es un ingreso antiguo, agregar campos de comisión con valores default
+          return {
+            ...ingreso,
+            esComision: false,
+            porcentajeComision: 100,
+            montoTotal: ingreso.monto || 0,
+            montoComision: ingreso.monto || 0
+          };
+        });
+
+        setIngresos(ingresosMigrados);
+
+        // Si hubo cambios, actualizar localStorage
+        const necesitaMigracion = ingresosParseados.some(i => !i.hasOwnProperty('esComision'));
+        if (necesitaMigracion) {
+          localStorage.setItem(STORAGE_KEY_INGRESOS, JSON.stringify(ingresosMigrados));
+          console.log('✓ Migración automática completada: Se agregaron campos de comisión a', ingresosParseados.length, 'ingresos');
+        }
       }
 
       if (gastosGuardados) {

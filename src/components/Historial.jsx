@@ -130,13 +130,32 @@ const Historial = ({ ingresos, gastos, onEliminar, onEditar, language, displayCu
           </div>
 
           <div className="text-right ml-4">
-            <div
-              className={`text-xl font-bold font-mono mb-3 ${
-                esIngreso ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
-              }`}
-            >
-              {esIngreso ? '+' : '-'}{formatearMoneda(transaccion.monto, displayCurrency, rate)}
-            </div>
+            {/* Mostrar comisiones empresariales de forma especial */}
+            {esIngreso && transaccion.esComision ? (
+              <div className="mb-3">
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  📊 Facturación Total
+                </div>
+                <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 font-mono mb-2">
+                  {formatearMoneda(transaccion.montoTotal, displayCurrency, rate)}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-gray-400 mb-1 flex items-center justify-end gap-1">
+                  <span>💰 Tu Comisión ({transaccion.porcentajeComision}%)</span>
+                </div>
+                <div className="text-xl font-bold text-green-600 dark:text-green-500 font-mono">
+                  +{formatearMoneda(transaccion.montoComision, displayCurrency, rate)}
+                </div>
+              </div>
+            ) : (
+              <div
+                className={`text-xl font-bold font-mono mb-3 ${
+                  esIngreso ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500'
+                }`}
+              >
+                {esIngreso ? '+' : '-'}{formatearMoneda(transaccion.monto, displayCurrency, rate)}
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 onClick={() => onEditar(transaccion, transaccion.tipo)}
