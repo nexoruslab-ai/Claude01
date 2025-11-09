@@ -1,7 +1,11 @@
 import React from 'react';
 import { formatearMoneda } from '../utils/calculations.js';
+import { useTranslation } from '../utils/i18n.js';
 
-const SistemaPrioridades = ({ distribucion }) => {
+const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeRate }) => {
+  const { t } = useTranslation(language);
+  const rate = exchangeRate?.USD_ARS || 1427.99;
+
   // Agrupar por nivel de prioridad
   const prioridades = {
     1: [],
@@ -21,7 +25,7 @@ const SistemaPrioridades = ({ distribucion }) => {
 
   const renderBarraProgreso = (porcentaje, color) => {
     return (
-      <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
         <div
           className="h-2.5 rounded-full transition-all duration-500"
           style={{
@@ -37,27 +41,27 @@ const SistemaPrioridades = ({ distribucion }) => {
     const estaCompleto = item.estado === 'OK';
 
     return (
-      <tr key={item.numero} className="hover:bg-gray-50 transition-colors">
-        <td className="px-4 py-3 text-sm text-gray-600">{item.numero}</td>
-        <td className="px-4 py-3 font-medium text-gray-800">{item.categoria}</td>
-        <td className="px-4 py-3 text-sm text-gray-600">
-          {formatearMoneda(item.meta, 'USD')}
+      <tr key={item.numero} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">{item.numero}</td>
+        <td className="px-4 py-3 font-medium text-gray-800 dark:text-gray-100">{item.categoria}</td>
+        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+          {formatearMoneda(item.meta, displayCurrency, rate)}
         </td>
         <td className="px-4 py-3 text-sm font-semibold" style={{ color: item.color }}>
-          {formatearMoneda(item.asignado, 'USD')}
+          {formatearMoneda(item.asignado, displayCurrency, rate)}
         </td>
-        <td className="px-4 py-3 text-sm text-gray-600">
-          {formatearMoneda(item.gastado, 'USD')}
+        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+          {formatearMoneda(item.gastado, displayCurrency, rate)}
         </td>
-        <td className="px-4 py-3 text-sm text-gray-600">
-          {formatearMoneda(item.disponible, 'USD')}
+        <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+          {formatearMoneda(item.disponible, displayCurrency, rate)}
         </td>
         <td className="px-4 py-3">
           <div className="flex items-center gap-2">
             <div className="flex-1">
               {renderBarraProgreso(item.porcentajeCumplido, item.color)}
             </div>
-            <span className="text-sm font-medium text-gray-600 min-w-[45px]">
+            <span className="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[45px]">
               {item.porcentajeCumplido}%
             </span>
           </div>
@@ -66,11 +70,11 @@ const SistemaPrioridades = ({ distribucion }) => {
           <span
             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
               estaCompleto
-                ? 'bg-green-100 text-green-800'
-                : 'bg-yellow-100 text-yellow-800'
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
             }`}
           >
-            {item.estado}
+            {estaCompleto ? (t('priorities.statusOk') || 'OK') : (t('priorities.statusPending') || 'PENDIENTE')}
           </span>
         </td>
       </tr>
@@ -81,7 +85,7 @@ const SistemaPrioridades = ({ distribucion }) => {
     if (items.length === 0) return null;
 
     return (
-      <div key={nivel} className="bg-white rounded-lg shadow-md overflow-hidden mb-4">
+      <div key={nivel} className="glass-card dark:glass-card rounded-premium shadow-elevation-1 overflow-hidden mb-4 border border-white/10">
         {/* Header del nivel */}
         <div
           className="px-4 py-3 font-bold text-white"
@@ -92,36 +96,36 @@ const SistemaPrioridades = ({ distribucion }) => {
 
         {/* Tabla de categorías */}
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-800/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  #
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.number') || '#'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Categoría
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.category') || 'Categoría'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Meta
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.goal') || 'Meta'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Asignado
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.assigned') || 'Asignado'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Gastado
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.spent') || 'Gastado'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Disponible
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.available') || 'Disponible'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Progreso
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.progress') || 'Progreso'}
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Estado
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                  {t('priorities.status') || 'Estado'}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-900/50 divide-y divide-gray-200 dark:divide-gray-700">
               {items.map(item => renderFilaCategoria(item))}
             </tbody>
           </table>
@@ -131,44 +135,58 @@ const SistemaPrioridades = ({ distribucion }) => {
   };
 
   return (
-    <div className="space-y-6 pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">Sistema de Prioridades</h1>
-        <p className="text-purple-100">Distribución en Cascada Automática</p>
+    <div className="space-y-6 pb-20 animate-fadeIn">
+      {/* Header Premium */}
+      <div className="glass-card dark:glass-card rounded-premium p-6 shadow-elevation-2 border border-gold/20">
+        <h1 className="text-4xl font-bold text-gradient-gold mb-2">
+          {t('priorities.title') || 'Sistema de Prioridades'}
+        </h1>
+        <p className="text-dark-textSecondary dark:text-dark-textSecondary">
+          {t('priorities.subtitle') || 'Distribución en Cascada Automática'}
+        </p>
       </div>
 
       {/* Sagrado 40% destacado */}
       {sagrado && (
-        <div className="bg-gradient-to-r from-yellow-400 to-yellow-500 p-6 rounded-lg shadow-lg">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div>
-              <div className="text-sm text-yellow-900 mb-1 font-semibold">
-                🔒 {sagrado.categoria}
+        <div className="glass-card rounded-premium p-6 shadow-glow-gold border-2 border-gold/40 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-gold opacity-10"></div>
+          <div className="relative z-10">
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <div className="text-sm text-yellow-900 dark:text-gold mb-1 font-bold flex items-center gap-2">
+                  <span className="text-2xl">🔒</span>
+                  <span>{sagrado.categoria}</span>
+                </div>
+                <div className="text-5xl font-bold text-gradient-gold font-mono mb-2">
+                  {formatearMoneda(sagrado.asignado, displayCurrency, rate)}
+                </div>
+                <div className="text-xs text-dark-textSecondary dark:text-dark-textSecondary">
+                  {t('priorities.automaticallyBefore') || 'Apartado automáticamente SIEMPRE antes de cualquier distribución'}
+                </div>
               </div>
-              <div className="text-4xl font-bold text-yellow-900">
-                {formatearMoneda(sagrado.asignado, 'USD')}
+              <div className="text-center">
+                <div className="text-7xl font-bold text-gradient-gold shimmer">40%</div>
+                <div className="text-xs text-gold-dark mt-1">{t('dashboard.sacred40Subtitle') || '(Intocable)'}</div>
               </div>
-              <div className="text-sm text-yellow-800 mt-1">
-                Apartado automáticamente SIEMPRE antes de cualquier distribución
-              </div>
-            </div>
-            <div className="text-center">
-              <div className="text-6xl font-bold text-yellow-900">40%</div>
-              <div className="text-xs text-yellow-800">Intocable</div>
             </div>
           </div>
         </div>
       )}
 
       {/* Explicación del sistema */}
-      <div className="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
-        <h3 className="font-bold text-blue-900 mb-2">¿Cómo funciona la cascada?</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• El 60% restante se distribuye en orden estricto de prioridad</li>
-          <li>• Una categoría solo recibe dinero si las anteriores están completas</li>
-          <li>• El dinero "cae en cascada" hasta donde alcance</li>
-          <li>• Estado "OK" = Meta cumplida, "PENDIENTE" = Necesita más fondos</li>
+      <div className="glass-card dark:glass-card border-l-4 border-blue-500 dark:border-blue-400 p-4 rounded-premium shadow-elevation-1">
+        <h3 className="font-bold text-blue-900 dark:text-blue-400 mb-2">
+          {t('priorities.howItWorks') || '¿Cómo funciona la cascada?'}
+        </h3>
+        <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+          {(t('priorities.explanation') || [
+            'El 60% restante se distribuye en orden estricto de prioridad',
+            'Una categoría solo recibe dinero si las anteriores están completas',
+            'El dinero "cae en cascada" hasta donde alcance',
+            'Estado "OK" = Meta cumplida, "PENDIENTE" = Necesita más fondos'
+          ]).map((item, index) => (
+            <li key={index}>• {item}</li>
+          ))}
         </ul>
       </div>
 
@@ -178,7 +196,7 @@ const SistemaPrioridades = ({ distribucion }) => {
         prioridades[1],
         '#dc2626',
         '#fee2e2',
-        'PRIORIDAD 01 - Crítico'
+        t('priorities.priority01') || 'PRIORIDAD 01 - Crítico'
       )}
 
       {renderNivelPrioridad(
@@ -186,7 +204,7 @@ const SistemaPrioridades = ({ distribucion }) => {
         prioridades[2],
         '#ea580c',
         '#ffedd5',
-        'PRIORIDAD 02 - Importante'
+        t('priorities.priority02') || 'PRIORIDAD 02 - Importante'
       )}
 
       {renderNivelPrioridad(
@@ -194,7 +212,7 @@ const SistemaPrioridades = ({ distribucion }) => {
         prioridades[3],
         '#ca8a04',
         '#fef9c3',
-        'PRIORIDAD 03 - Inversiones'
+        t('priorities.priority03') || 'PRIORIDAD 03 - Inversiones'
       )}
 
       {renderNivelPrioridad(
@@ -202,7 +220,7 @@ const SistemaPrioridades = ({ distribucion }) => {
         prioridades[4],
         '#16a34a',
         '#dcfce7',
-        'PRIORIDAD 04 - Calidad de vida'
+        t('priorities.priority04') || 'PRIORIDAD 04 - Calidad de vida'
       )}
     </div>
   );
