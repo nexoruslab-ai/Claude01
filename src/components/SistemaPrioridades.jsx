@@ -1,8 +1,9 @@
 import React from 'react';
 import { formatearMoneda } from '../utils/calculations.js';
 import { useTranslation } from '../utils/i18n.js';
+import { CogIcon } from '@heroicons/react/24/outline';
 
-const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeRate }) => {
+const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeRate, onManagePriorities }) => {
   const { t } = useTranslation(language);
   const rate = exchangeRate?.USD_ARS || 1427.99;
 
@@ -138,12 +139,27 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
     <div className="space-y-6 pb-20 animate-fadeIn">
       {/* Header Premium */}
       <div className="glass-card dark:glass-card rounded-premium p-6 shadow-elevation-2 border border-gold/20">
-        <h1 className="text-4xl font-bold text-gradient-gold mb-2">
-          {t('priorities.title') || 'Sistema de Prioridades'}
-        </h1>
-        <p className="text-dark-textSecondary dark:text-dark-textSecondary">
-          {t('priorities.subtitle') || 'Distribución en Cascada Automática'}
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-gradient-gold mb-2">
+              {t('priorities.title') || 'Sistema de Prioridades'}
+            </h1>
+            <p className="text-dark-textSecondary dark:text-dark-textSecondary">
+              {t('priorities.subtitle') || 'Distribución en Cascada Automática'}
+            </p>
+          </div>
+
+          {onManagePriorities && (
+            <button
+              onClick={onManagePriorities}
+              className="px-4 py-2 bg-gradient-gold text-black rounded-button font-semibold hover:brightness-110 transition-all shadow-elevation-1 flex items-center gap-2 whitespace-nowrap"
+            >
+              <CogIcon className="w-5 h-5" />
+              <span className="hidden sm:inline">{t('priorities.editor.manage') || 'Gestionar Prioridades'}</span>
+              <span className="sm:hidden">⚙️</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Sagrado 40% destacado */}

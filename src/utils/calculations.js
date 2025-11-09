@@ -88,16 +88,18 @@ export const calcularGastosPorCategoria = (gastos) => {
  *
  * @param {number} totalIngresos - Total de ingresos
  * @param {object} gastosPorCategoria - Gastos agrupados por categoría
+ * @param {Array} prioridadesCustom - Prioridades personalizadas (opcional, usa default si no se provee)
  * @returns {Array} - Array con información de distribución por categoría
  */
-export const calcularDistribucionCascada = (totalIngresos, gastosPorCategoria) => {
+export const calcularDistribucionCascada = (totalIngresos, gastosPorCategoria, prioridadesCustom = null) => {
+  const prioridadesAUsar = prioridadesCustom || PRIORIDADES;
   const sagrado40 = calcularSagrado40(totalIngresos);
   let disponible60 = calcularDisponible60(totalIngresos);
 
   const resultados = [];
 
   // Procesar cada categoría en orden de PRIORIDADES
-  for (const prioridad of PRIORIDADES) {
+  for (const prioridad of prioridadesAUsar) {
     const categoria = prioridad.categoria;
 
     // Caso especial: SAGRADO 40%
@@ -244,7 +246,7 @@ export const calcularMetricasEmpresariales = (ingresos) => {
 /**
  * Calcula el balance general completo
  */
-export const calcularBalanceGeneral = (ingresos, gastos) => {
+export const calcularBalanceGeneral = (ingresos, gastos, prioridadesCustom = null) => {
   const totalIngresos = calcularTotalIngresos(ingresos);
   const totalGastos = calcularTotalGastos(gastos);
   const sagrado40 = calcularSagrado40(totalIngresos);
@@ -253,7 +255,7 @@ export const calcularBalanceGeneral = (ingresos, gastos) => {
   const disponibleReal = disponible60 - totalGastos;
 
   const gastosPorCategoria = calcularGastosPorCategoria(gastos);
-  const distribucion = calcularDistribucionCascada(totalIngresos, gastosPorCategoria);
+  const distribucion = calcularDistribucionCascada(totalIngresos, gastosPorCategoria, prioridadesCustom);
   const ingresosPorEmpresa = calcularIngresosPorEmpresa(ingresos);
   const metricasEmpresariales = calcularMetricasEmpresariales(ingresos);
 

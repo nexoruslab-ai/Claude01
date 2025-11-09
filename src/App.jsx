@@ -5,11 +5,13 @@ import FormularioIngreso from './components/FormularioIngreso.jsx';
 import FormularioGasto from './components/FormularioGasto.jsx';
 import Historial from './components/Historial.jsx';
 import Toast from './components/Toast.jsx';
+import EditorPrioridades from './components/EditorPrioridades.jsx';
 import { calcularBalanceGeneral } from './utils/calculations.js';
 import { getStoredLanguage, setStoredLanguage } from './utils/i18n.js';
 import { initializeTheme, toggleTheme as toggleThemeUtil, setStoredTheme, applyTheme } from './utils/theme.js';
 import { getStoredDisplayCurrency, setStoredDisplayCurrency } from './utils/currency.js';
 import { getCurrentExchangeRate, processTransactionWithCurrency } from './utils/exchangeRate.js';
+import { loadPriorities, savePriorities } from './utils/prioritiesManager.js';
 import { SunIcon, MoonIcon, LanguageIcon } from '@heroicons/react/24/solid';
 import { ChartBarIcon, FireIcon, PlusIcon, ClockIcon } from '@heroicons/react/24/outline';
 
@@ -21,10 +23,12 @@ function App() {
   // Estado para datos
   const [ingresos, setIngresos] = useState([]);
   const [gastos, setGastos] = useState([]);
+  const [prioridades, setPrioridades] = useState([]);
 
   // Estado para navegación
   const [vistaActual, setVistaActual] = useState('dashboard');
   const [mostrarModalTipo, setMostrarModalTipo] = useState(false);
+  const [mostrarEditorPrioridades, setMostrarEditorPrioridades] = useState(false);
 
   // Estado para edición
   const [transaccionEditar, setTransaccionEditar] = useState(null);
@@ -51,6 +55,10 @@ function App() {
     // Moneda de visualización
     const savedCurrency = getStoredDisplayCurrency();
     setDisplayCurrency(savedCurrency);
+
+    // Cargar prioridades
+    const loadedPriorities = loadPriorities();
+    setPrioridades(loadedPriorities);
 
     // Obtener tasa de cambio
     fetchExchangeRate();
@@ -129,8 +137,8 @@ function App() {
     }
   };
 
-  // Calcular balance general
-  const balance = calcularBalanceGeneral(ingresos, gastos);
+  // Calcular balance general con prioridades personalizadas
+  const balance = calcularBalanceGeneral(ingresos, gastos, prioridades.length > 0 ? prioridades : null);
 
   // Handlers para agregar/editar transacciones
   const handleGuardarIngreso = (nuevoIngreso) => {
@@ -232,6 +240,20 @@ function App() {
     setStoredDisplayCurrency(newCurrency);
   };
 
+  // Handlers para gestionar prioridades
+  const handleManagePriorities = () => {
+    setMostrarEditorPrioridades(true);
+  };
+
+  const handleSavePriorities = (nuevasPrioridades) => {
+    setPrioridades(nuevasPrioridades);
+    savePriorities(nuevasPrioridades);
+    showToast(
+      language === 'es' ? 'Prioridades actualizadas exitosamente' : 'Priorities updated successfully',
+      'success'
+    );
+  };
+
   // Mostrar toast
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -257,6 +279,7 @@ function App() {
             language={language}
             displayCurrency={displayCurrency}
             exchangeRate={exchangeRate}
+            onManagePriorities={handleManagePriorities}
           />
         );
       case 'nuevoIngreso':
@@ -449,6 +472,16 @@ function App() {
           message={toast.message}
           type={toast.type}
           onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Editor de Prioridades */}
+      {mostrarEditorPrioridades && (
+        <EditorPrioridades
+          priorities={prioridades}
+          onSave={handleSavePriorities}
+          onClose={() => setMostrarEditorPrioridades(false)}
+          language={language}
         />
       )}
     </div>
