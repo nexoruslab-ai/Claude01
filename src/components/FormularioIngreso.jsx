@@ -136,7 +136,7 @@ const FormularioIngreso = ({ onGuardar, onCancelar, language, transaccion }) => 
       </div>
 
       <div className="max-w-2xl mx-auto p-6">
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 space-y-4 border border-gray-200 dark:border-gray-800">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 rounded-lg shadow-md p-6 space-y-4 border border-gray-200 dark:border-gray-800" data-tour="income-form">
           {/* Fecha */}
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

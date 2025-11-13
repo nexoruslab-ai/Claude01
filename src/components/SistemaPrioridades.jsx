@@ -86,11 +86,11 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
     );
   };
 
-  const renderNivelPrioridad = (nivel, items, color, colorBg, nombre) => {
+  const renderNivelPrioridad = (nivel, items, color, colorBg, nombre, dataTour) => {
     if (items.length === 0) return null;
 
     return (
-      <div key={nivel} className="glass-card dark:glass-card rounded-premium shadow-elevation-1 overflow-hidden mb-4 border border-white/10">
+      <div key={nivel} className="glass-card dark:glass-card rounded-premium shadow-elevation-1 overflow-hidden mb-4 border border-white/10" data-tour={dataTour}>
         {/* Header del nivel */}
         <div
           className="px-4 py-3 font-bold text-white"
@@ -140,7 +140,7 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
   };
 
   return (
-    <div className="space-y-6 pb-20 animate-fadeIn">
+    <div className="space-y-6 pb-20 animate-fadeIn" data-tour="priorities-section">
       {/* Header Premium */}
       <div className="glass-card dark:glass-card rounded-premium p-6 shadow-elevation-2 border border-gold/20">
         <div className="flex items-center justify-between">
@@ -157,6 +157,7 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
             <button
               onClick={onManagePriorities}
               className="px-4 py-2 bg-gradient-gold text-black rounded-button font-semibold hover:brightness-110 transition-all shadow-elevation-1 flex items-center gap-2 whitespace-nowrap"
+              data-tour="btn-manage-priorities"
             >
               <CogIcon className="w-5 h-5" />
               <span className="hidden sm:inline">{t('priorities.customize')}</span>
@@ -211,37 +212,40 @@ const SistemaPrioridades = ({ distribucion, language, displayCurrency, exchangeR
       </div>
 
       {/* Niveles de prioridad */}
-      {renderNivelPrioridad(
-        1,
-        prioridades[1],
-        '#dc2626',
-        '#fee2e2',
-        t('priorities.priority01') || 'PRIORIDAD 01 - Crítico'
-      )}
+      <div data-tour="priorities-list">
+        {renderNivelPrioridad(
+          1,
+          prioridades[1],
+          '#dc2626',
+          '#fee2e2',
+          t('priorities.priority01') || 'PRIORIDAD 01 - Crítico',
+          'priority-card'
+        )}
 
-      {renderNivelPrioridad(
-        2,
-        prioridades[2],
-        '#ea580c',
-        '#ffedd5',
-        t('priorities.priority02') || 'PRIORIDAD 02 - Importante'
-      )}
+        {renderNivelPrioridad(
+          2,
+          prioridades[2],
+          '#ea580c',
+          '#ffedd5',
+          t('priorities.priority02') || 'PRIORIDAD 02 - Importante'
+        )}
 
-      {renderNivelPrioridad(
-        3,
-        prioridades[3],
-        '#ca8a04',
-        '#fef9c3',
-        t('priorities.priority03') || 'PRIORIDAD 03 - Inversiones'
-      )}
+        {renderNivelPrioridad(
+          3,
+          prioridades[3],
+          '#ca8a04',
+          '#fef9c3',
+          t('priorities.priority03') || 'PRIORIDAD 03 - Inversiones'
+        )}
 
-      {renderNivelPrioridad(
-        4,
-        prioridades[4],
-        '#16a34a',
-        '#dcfce7',
-        t('priorities.priority04') || 'PRIORIDAD 04 - Calidad de vida'
-      )}
+        {renderNivelPrioridad(
+          4,
+          prioridades[4],
+          '#16a34a',
+          '#dcfce7',
+          t('priorities.priority04') || 'PRIORIDAD 04 - Calidad de vida'
+        )}
+      </div>
     </div>
   );
 };

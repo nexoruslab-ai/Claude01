@@ -136,7 +136,7 @@ const Dashboard = ({ balance, onNuevaTransaccion, language, displayCurrency, exc
       </div>
 
       {/* Balance General - Cards Premium con glassmorphism */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-tour="dashboard-stats">
         {/* Total Ingresos */}
         <div className="glass-card dark:glass-card rounded-premium p-5 shadow-elevation-1 hover:shadow-elevation-2 transition-premium hover-lift border border-white/10">
           <div className="text-sm text-dark-textSecondary dark:text-dark-textSecondary mb-2 font-medium">
@@ -168,7 +168,7 @@ const Dashboard = ({ balance, onNuevaTransaccion, language, displayCurrency, exc
         </div>
 
         {/* Sagrado 40% - DESTACADO con efecto especial */}
-        <div className="md:col-span-2 glass-card rounded-premium p-6 shadow-glow-gold border-2 border-gold/40 relative overflow-hidden">
+        <div className="md:col-span-2 glass-card rounded-premium p-6 shadow-glow-gold border-2 border-gold/40 relative overflow-hidden" data-tour="sagrado-40">
           <div className="absolute inset-0 bg-gradient-gold opacity-10"></div>
           <div className="relative z-10">
             <div className="flex items-center justify-between flex-wrap gap-4">
@@ -329,6 +329,7 @@ const Dashboard = ({ balance, onNuevaTransaccion, language, displayCurrency, exc
         onClick={() => onNuevaTransaccion()}
         className="fixed bottom-24 right-6 bg-gradient-gold text-dark-bg rounded-full w-16 h-16 shadow-glow-gold hover:shadow-elevation-3 transition-premium hover-scale flex items-center justify-center z-10 btn-premium"
         title={t('nav.add')}
+        data-tour="btn-add-transaction"
       >
         <PlusIcon className="w-8 h-8" />
       </button>

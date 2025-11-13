@@ -6,6 +6,7 @@ import FormularioGasto from './FormularioGasto.jsx';
 import Historial from './Historial.jsx';
 import Toast from './Toast.jsx';
 import EditorPrioridades from './EditorPrioridades.jsx';
+import Tutorial from './Tutorial/Tutorial.jsx';
 import { calcularBalanceGeneral } from '../utils/calculations.js';
 import { getStoredLanguage, setStoredLanguage } from '../utils/i18n.js';
 import { initializeTheme, toggleTheme as toggleThemeUtil, setStoredTheme, applyTheme } from '../utils/theme.js';
@@ -45,6 +46,10 @@ function FinFlowApp() {
 
   // Estado para notificaciones
   const [toast, setToast] = useState(null);
+
+  // Estado para tutorial
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [forceRestartTutorial, setForceRestartTutorial] = useState(false);
 
   // Inicializar configuración
   useEffect(() => {
@@ -154,6 +159,14 @@ function FinFlowApp() {
       showToast('Error al obtener tipo de cambio', 'error');
     }
   };
+
+  // Inicializar tutorial para usuarios nuevos
+  useEffect(() => {
+    if (user && vistaActual === 'dashboard') {
+      // Abrir tutorial automáticamente cuando el usuario está en dashboard
+      setTutorialOpen(true);
+    }
+  }, [user, vistaActual]);
 
   // Calcular balance general con prioridades personalizadas
   const balance = calcularBalanceGeneral(ingresos, gastos, prioridades.length > 0 ? prioridades : null);
@@ -331,6 +344,32 @@ function FinFlowApp() {
     }
   };
 
+  // Handlers para tutorial
+  const handleTutorialComplete = () => {
+    console.log('✅ Tutorial - Completado');
+    setTutorialOpen(false);
+    setForceRestartTutorial(false);
+    showToast(
+      language === 'es'
+        ? '🎉 ¡Tutorial completado! Ahora dominas FinFlow'
+        : '🎉 Tutorial completed! You now master FinFlow',
+      'success'
+    );
+  };
+
+  const handleTutorialSkip = () => {
+    console.log('⏭️ Tutorial - Saltado');
+    setTutorialOpen(false);
+    setForceRestartTutorial(false);
+  };
+
+  const handleRestartTutorial = () => {
+    console.log('🔄 Tutorial - Reiniciando');
+    setForceRestartTutorial(true);
+    setTutorialOpen(true);
+    setVistaActual('dashboard'); // Asegurar que estamos en dashboard
+  };
+
   // Mostrar toast
   const showToast = (message, type = 'success') => {
     setToast({ message, type });
@@ -408,7 +447,7 @@ function FinFlowApp() {
       {!['nuevoIngreso', 'nuevoGasto'].includes(vistaActual) && (
         <div className="fixed top-0 left-0 right-0 z-30 glass-card dark:glass-card border-b border-white/10 backdrop-blur-glass">
           <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-end gap-3">
+            <div className="flex items-center justify-end gap-3" data-tour="settings-menu">
               {/* Selector de moneda */}
               <button
                 onClick={handleToggleCurrency}
@@ -426,6 +465,16 @@ function FinFlowApp() {
               >
                 <LanguageIcon className="w-4 h-4 text-gold" />
                 <span className="text-xs font-semibold text-gold">{language.toUpperCase()}</span>
+              </button>
+
+              {/* Botón de Tutorial */}
+              <button
+                onClick={handleRestartTutorial}
+                className="glass-card dark:glass-card px-3 py-2 rounded-button hover:shadow-elevation-1 transition-premium flex items-center justify-center gap-1.5 border border-white/10 min-w-[70px]"
+                title={language === 'es' ? 'Ver Tutorial' : 'View Tutorial'}
+                data-tour="btn-repeat-tutorial"
+              >
+                <span className="text-gold text-sm">🎓</span>
               </button>
 
               {/* Toggle de tema */}
@@ -525,6 +574,7 @@ function FinFlowApp() {
                   setMostrarModalTipo(false);
                 }}
                 className="w-full btn-premium text-center py-4"
+                data-tour="btn-add-income"
               >
                 <span className="text-xl mr-2">↑</span>
                 <span>{language === 'es' ? 'Ingreso' : 'Income'}</span>
@@ -536,6 +586,7 @@ function FinFlowApp() {
                   setMostrarModalTipo(false);
                 }}
                 className="w-full bg-red-600 text-white py-4 rounded-button font-semibold hover:bg-red-700 transition-premium shadow-elevation-1 hover:shadow-elevation-2"
+                data-tour="btn-add-expense"
               >
                 <span className="text-xl mr-2">↓</span>
                 <span>{language === 'es' ? 'Gasto' : 'Expense'}</span>
@@ -570,6 +621,15 @@ function FinFlowApp() {
           language={language}
         />
       )}
+
+      {/* Tutorial Interactivo */}
+      <Tutorial
+        isOpen={tutorialOpen}
+        onComplete={handleTutorialComplete}
+        onSkip={handleTutorialSkip}
+        language={language}
+        forceRestart={forceRestartTutorial}
+      />
     </div>
   );
 }
