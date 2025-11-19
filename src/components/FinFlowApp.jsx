@@ -50,6 +50,7 @@ function FinFlowApp() {
   // Estado para tutorial
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [forceRestartTutorial, setForceRestartTutorial] = useState(false);
+  const [tutorialUserAction, setTutorialUserAction] = useState(null);
 
   // Inicializar configuración
   useEffect(() => {
@@ -185,6 +186,10 @@ function FinFlowApp() {
         // Nuevo ingreso
         setIngresos(prev => [...prev, ingresoConConversion]);
         showToast(language === 'es' ? 'Ingreso guardado exitosamente' : 'Income saved successfully', 'success');
+
+        // Notificar al tutorial que se guardó un ingreso
+        setTutorialUserAction('save-income');
+        setTimeout(() => setTutorialUserAction(null), 500);
       }
     }
 
@@ -244,10 +249,17 @@ function FinFlowApp() {
     setTransaccionEditar(null);
     if (tipo === 'ingreso') {
       setVistaActual('nuevoIngreso');
+      // Notificar al tutorial que se hizo click en agregar transacción
+      setTutorialUserAction('click-add-transaction');
+      setTimeout(() => setTutorialUserAction(null), 500);
     } else if (tipo === 'gasto') {
       setVistaActual('nuevoGasto');
+      setTutorialUserAction('click-add-transaction');
+      setTimeout(() => setTutorialUserAction(null), 500);
     } else {
       setMostrarModalTipo(true);
+      setTutorialUserAction('click-add-transaction');
+      setTimeout(() => setTutorialUserAction(null), 500);
     }
   };
 
@@ -303,6 +315,10 @@ function FinFlowApp() {
   // Handlers para gestionar prioridades
   const handleManagePriorities = () => {
     setMostrarEditorPrioridades(true);
+
+    // Notificar al tutorial que se hizo click en gestionar prioridades
+    setTutorialUserAction('click-manage-priorities');
+    setTimeout(() => setTutorialUserAction(null), 500);
   };
 
   const handleSavePriorities = async (nuevasPrioridades) => {
@@ -629,6 +645,7 @@ function FinFlowApp() {
         onSkip={handleTutorialSkip}
         language={language}
         forceRestart={forceRestartTutorial}
+        userAction={tutorialUserAction}
       />
     </div>
   );
