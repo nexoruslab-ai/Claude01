@@ -1,12 +1,12 @@
+/* Fuentes: Cinzel (DENARIUM) + Inter + JetBrains Mono */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Importar estilos premium (debe preceder @tailwind) */
+@import './styles/premium.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Importar estilos premium */
-@import './styles/premium.css';
-
-/* Importar fuente Inter de Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 * {
   margin: 0;
@@ -20,75 +20,31 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #0a0a0f;
+  color: #e8e8f0;
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Tema oscuro (default) */
-body {
-  background-color: #0a0a0f;
-  color: #e8e8f0;
-}
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(22, 22, 29, 0.8); }
+::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #606060, #a0a0a0); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #a0a0a0, #c0c0c0); }
 
-/* Tema claro */
-:root:not(.dark) body {
-  background-color: #fafafa;
-  color: #1a1a2e;
-}
-
-/* Estilos personalizados para scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Animaciones sutiles */
+/* Animaciones */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+.animate-fade-in { animation: fadeIn 0.3s ease-in-out; }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
+/* Previene zoom en iOS */
+input, select, textarea { font-size: 16px; }
 
-/* Mejoras para inputs en móvil */
-input,
-select,
-textarea {
-  font-size: 16px; /* Previene zoom en iOS */
-}
+/* Botones táctiles */
+button { -webkit-tap-highlight-color: transparent; }
 
-/* Mejoras para botones táctiles */
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-/* Estilos para números en inputs */
+/* Inputs numéricos sin flechas */
 input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type="number"] {
-  -moz-appearance: textfield;
-}
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }

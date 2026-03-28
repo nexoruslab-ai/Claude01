@@ -4,137 +4,92 @@ import { EMPRESAS, CATEGORIAS, MONEDAS } from '../data/constants.js';
 
 const Historial = ({ ingresos, gastos, onEliminar }) => {
   const [filtros, setFiltros] = useState({
-    tipo: 'todos', // todos, ingresos, gastos
-    empresa: 'todas',
-    categoria: 'todas',
-    moneda: 'todas',
+    tipo:       'todos',
+    empresa:    'todas',
+    categoria:  'todas',
+    moneda:     'todas',
     fechaDesde: '',
     fechaHasta: ''
   });
-
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
-  // Combinar ingresos y gastos en una sola lista
   const transacciones = useMemo(() => {
-    const ingresosConTipo = ingresos.map(i => ({ ...i, tipo: 'ingreso' }));
-    const gastosConTipo = gastos.map(g => ({ ...g, tipo: 'gasto' }));
-    return [...ingresosConTipo, ...gastosConTipo].sort((a, b) =>
-      new Date(b.fecha) - new Date(a.fecha)
-    );
+    const i = ingresos.map(t => ({ ...t, tipo: 'ingreso' }));
+    const g = gastos.map(t => ({ ...t, tipo: 'gasto' }));
+    return [...i, ...g].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
   }, [ingresos, gastos]);
 
-  // Aplicar filtros
   const transaccionesFiltradas = useMemo(() => {
     return transacciones.filter(t => {
-      // Filtro por tipo
-      if (filtros.tipo !== 'todos' && t.tipo !== filtros.tipo) return false;
-
-      // Filtro por empresa (solo para ingresos)
-      if (filtros.empresa !== 'todas' && t.tipo === 'ingreso' && t.empresa !== filtros.empresa) return false;
-
-      // Filtro por categoría (solo para gastos)
-      if (filtros.categoria !== 'todas' && t.tipo === 'gasto' && t.categoria !== filtros.categoria) return false;
-
-      // Filtro por moneda
-      if (filtros.moneda !== 'todas' && t.moneda !== filtros.moneda) return false;
-
-      // Filtro por fecha desde
-      if (filtros.fechaDesde && t.fecha < filtros.fechaDesde) return false;
-
-      // Filtro por fecha hasta
-      if (filtros.fechaHasta && t.fecha > filtros.fechaHasta) return false;
-
+      if (filtros.tipo      !== 'todos'  && t.tipo      !== filtros.tipo)      return false;
+      if (filtros.empresa   !== 'todas'  && t.tipo === 'ingreso' && t.empresa  !== filtros.empresa)  return false;
+      if (filtros.categoria !== 'todas'  && t.tipo === 'gasto'   && t.categoria !== filtros.categoria) return false;
+      if (filtros.moneda    !== 'todas'  && t.moneda    !== filtros.moneda)    return false;
+      if (filtros.fechaDesde             && t.fecha     <  filtros.fechaDesde) return false;
+      if (filtros.fechaHasta             && t.fecha     >  filtros.fechaHasta) return false;
       return true;
     });
   }, [transacciones, filtros]);
 
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
-    setFiltros(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFiltros(prev => ({ ...prev, [name]: value }));
   };
 
-  const limpiarFiltros = () => {
-    setFiltros({
-      tipo: 'todos',
-      empresa: 'todas',
-      categoria: 'todas',
-      moneda: 'todas',
-      fechaDesde: '',
-      fechaHasta: ''
-    });
-  };
+  const limpiarFiltros = () =>
+    setFiltros({ tipo: 'todos', empresa: 'todas', categoria: 'todas', moneda: 'todas', fechaDesde: '', fechaHasta: '' });
 
   const handleEliminar = (id, tipo) => {
-    if (window.confirm('¿Estás seguro de que deseas eliminar esta transacción?')) {
-      onEliminar(id, tipo);
-    }
+    if (window.confirm('¿Eliminar esta transacción?')) onEliminar(id, tipo);
   };
 
-  const renderTransaccion = (transaccion) => {
-    const esIngreso = transaccion.tipo === 'ingreso';
+  const renderTransaccion = (t) => {
+    const esIngreso = t.tipo === 'ingreso';
 
     return (
-      <div
-        key={transaccion.id}
-        className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-      >
-        <div className="flex justify-between items-start mb-2">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  esIngreso
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {esIngreso ? '↑ Ingreso' : '↓ Gasto'}
+      <div key={t.id} className="glass-card rounded-premium p-4 border border-white/[0.06] hover:border-silver/15 transition-premium">
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold tracking-wider border ${
+                esIngreso
+                  ? 'bg-silver/10 text-silver-bright border-silver/20'
+                  : 'bg-silver-muted/30 text-silver-dim border-silver-deep/30'
+              }`}>
+                {esIngreso ? '↑ INGRESO' : '↓ GASTO'}
               </span>
-              <span className="text-sm text-gray-500">
-                {formatearFecha(transaccion.fecha)}
-              </span>
+              <span className="text-xs text-dark-textSecondary">{formatearFecha(t.fecha)}</span>
             </div>
 
-            <div className="font-semibold text-gray-800 mb-1">
-              {esIngreso ? transaccion.empresa : transaccion.categoria}
+            <div className="font-semibold text-silver-bright mb-1 truncate">
+              {esIngreso ? t.empresa : t.categoria}
             </div>
 
-            {transaccion.descripcion && (
-              <div className="text-sm text-gray-600 mb-1">
-                {transaccion.descripcion}
-              </div>
+            {t.descripcion && (
+              <div className="text-sm text-dark-textSecondary mb-1 line-clamp-1">{t.descripcion}</div>
             )}
 
-            <div className="flex flex-wrap gap-2 text-xs text-gray-500">
+            <div className="flex flex-wrap gap-3 text-xs text-silver-deep">
               {esIngreso && (
                 <>
-                  <span>📍 {transaccion.metodoCobro}</span>
-                  <span>📄 {transaccion.tipoPago}</span>
-                  {transaccion.cliente && <span>👤 {transaccion.cliente}</span>}
+                  <span>{t.metodoCobro}</span>
+                  <span>{t.tipoPago}</span>
+                  {t.cliente && <span>{t.cliente}</span>}
                 </>
               )}
-              {!esIngreso && (
-                <span>📍 {transaccion.metodoPago}</span>
-              )}
+              {!esIngreso && <span>{t.metodoPago}</span>}
             </div>
           </div>
 
-          <div className="text-right ml-4">
-            <div
-              className={`text-xl font-bold ${
-                esIngreso ? 'text-green-600' : 'text-red-600'
-              }`}
-            >
-              {esIngreso ? '+' : '-'}{formatearMoneda(transaccion.monto, transaccion.moneda)}
+          <div className="text-right shrink-0">
+            <div className={`text-xl font-bold font-mono ${esIngreso ? 'text-silver-bright' : 'text-silver-dim'}`}>
+              {esIngreso ? '+' : '−'}{formatearMoneda(t.monto, t.moneda)}
             </div>
             <button
-              onClick={() => handleEliminar(transaccion.id, transaccion.tipo)}
-              className="mt-2 text-red-500 hover:text-red-700 text-sm"
+              onClick={() => handleEliminar(t.id, t.tipo)}
+              className="mt-2 text-silver-deep hover:text-silver-dim text-xs transition-premium"
             >
-              🗑️ Eliminar
+              Eliminar
             </button>
           </div>
         </div>
@@ -142,131 +97,75 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
     );
   };
 
+  const selectCls = "w-full px-3 py-2 rounded-button text-sm bg-dark-bgSecondary border border-white/[0.08] text-dark-text focus:outline-none focus:border-silver/30 transition-premium";
+
   return (
-    <div className="space-y-4 pb-20">
+    <div className="space-y-4 pb-24 animate-fadeIn">
+
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-blue-600 text-white p-6 rounded-lg shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">Historial</h1>
-        <p className="text-indigo-100">
+      <div className="glass-card rounded-premium p-5 shadow-elevation-1 border border-silver/10">
+        <h1 className="font-display text-2xl font-bold text-silver tracking-widest mb-1">HISTORIAL</h1>
+        <p className="text-dark-textSecondary text-sm">
           {transaccionesFiltradas.length} de {transacciones.length} transacciones
         </p>
       </div>
 
-      {/* Botón para mostrar/ocultar filtros */}
+      {/* Toggle filtros */}
       <button
         onClick={() => setMostrarFiltros(!mostrarFiltros)}
-        className="w-full bg-white p-4 rounded-lg shadow text-left font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        className="w-full glass-card p-4 rounded-premium text-left font-medium text-silver-dark hover:border-silver/20 border border-white/[0.06] transition-premium text-sm tracking-wider"
       >
-        🔍 Filtros {mostrarFiltros ? '▲' : '▼'}
+        ⊞ FILTROS {mostrarFiltros ? '▲' : '▼'}
       </button>
 
       {/* Panel de filtros */}
       {mostrarFiltros && (
-        <div className="bg-white p-4 rounded-lg shadow space-y-3">
+        <div className="glass-card p-5 rounded-premium border border-white/[0.06] space-y-4 animate-fadeIn">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {/* Filtro por tipo */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo
-              </label>
-              <select
-                name="tipo"
-                value={filtros.tipo}
-                onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              >
+              <label className="block text-xs font-medium text-silver-dark mb-1 uppercase tracking-wider">Tipo</label>
+              <select name="tipo" value={filtros.tipo} onChange={handleFiltroChange} className={selectCls}>
                 <option value="todos">Todos</option>
                 <option value="ingreso">Ingresos</option>
                 <option value="gasto">Gastos</option>
               </select>
             </div>
-
-            {/* Filtro por empresa */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Empresa
-              </label>
-              <select
-                name="empresa"
-                value={filtros.empresa}
-                onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              >
+              <label className="block text-xs font-medium text-silver-dark mb-1 uppercase tracking-wider">Empresa</label>
+              <select name="empresa" value={filtros.empresa} onChange={handleFiltroChange} className={selectCls}>
                 <option value="todas">Todas</option>
-                {EMPRESAS.map(empresa => (
-                  <option key={empresa} value={empresa}>{empresa}</option>
-                ))}
+                {EMPRESAS.map(e => <option key={e} value={e}>{e}</option>)}
               </select>
             </div>
-
-            {/* Filtro por categoría */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Categoría
-              </label>
-              <select
-                name="categoria"
-                value={filtros.categoria}
-                onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              >
+              <label className="block text-xs font-medium text-silver-dark mb-1 uppercase tracking-wider">Categoría</label>
+              <select name="categoria" value={filtros.categoria} onChange={handleFiltroChange} className={selectCls}>
                 <option value="todas">Todas</option>
-                {CATEGORIAS.map(categoria => (
-                  <option key={categoria} value={categoria}>{categoria}</option>
-                ))}
+                {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-
-            {/* Filtro por moneda */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Moneda
-              </label>
-              <select
-                name="moneda"
-                value={filtros.moneda}
-                onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              >
+              <label className="block text-xs font-medium text-silver-dark mb-1 uppercase tracking-wider">Moneda</label>
+              <select name="moneda" value={filtros.moneda} onChange={handleFiltroChange} className={selectCls}>
                 <option value="todas">Todas</option>
-                {MONEDAS.map(moneda => (
-                  <option key={moneda} value={moneda}>{moneda}</option>
-                ))}
+                {MONEDAS.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
-
-            {/* Filtro fecha desde */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Desde
-              </label>
-              <input
-                type="date"
-                name="fechaDesde"
-                value={filtros.fechaDesde}
-                onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              />
+              <label className="block text-xs font-medium text-silver-dark mb-1 uppercase tracking-wider">Desde</label>
+              <input type="date" name="fechaDesde" value={filtros.fechaDesde} onChange={handleFiltroChange}
+                className={selectCls} style={{ colorScheme: 'dark' }} />
             </div>
-
-            {/* Filtro fecha hasta */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Hasta
-              </label>
-              <input
-                type="date"
-                name="fechaHasta"
-                value={filtros.fechaHasta}
-                onChange={handleFiltroChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm"
-              />
+              <label className="block text-xs font-medium text-silver-dark mb-1 uppercase tracking-wider">Hasta</label>
+              <input type="date" name="fechaHasta" value={filtros.fechaHasta} onChange={handleFiltroChange}
+                className={selectCls} style={{ colorScheme: 'dark' }} />
             </div>
           </div>
 
           <button
             onClick={limpiarFiltros}
-            className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+            className="w-full bg-dark-bgSecondary text-dark-textSecondary py-2 px-4 rounded-button hover:bg-silver-muted/20 transition-premium text-sm font-medium border border-white/[0.06]"
           >
             Limpiar Filtros
           </button>
@@ -276,15 +175,13 @@ const Historial = ({ ingresos, gastos, onEliminar }) => {
       {/* Lista de transacciones */}
       {transaccionesFiltradas.length > 0 ? (
         <div className="space-y-3">
-          {transaccionesFiltradas.map(transaccion => renderTransaccion(transaccion))}
+          {transaccionesFiltradas.map(t => renderTransaccion(t))}
         </div>
       ) : (
-        <div className="bg-white p-8 rounded-lg shadow text-center">
-          <p className="text-gray-500 text-lg mb-2">No hay transacciones</p>
-          <p className="text-gray-400 text-sm">
-            {transacciones.length > 0
-              ? 'Prueba ajustando los filtros'
-              : 'Comienza agregando ingresos y gastos'}
+        <div className="glass-card p-12 rounded-premium text-center border border-white/[0.06]">
+          <p className="text-dark-textSecondary text-lg mb-2">Sin transacciones</p>
+          <p className="text-silver-deep text-sm">
+            {transacciones.length > 0 ? 'Ajusta los filtros' : 'Comienza agregando ingresos y gastos'}
           </p>
         </div>
       )}

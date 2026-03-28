@@ -6,150 +6,100 @@ const FormularioIngreso = ({ onGuardar, onCancelar }) => {
   const hoy = new Date().toISOString().split('T')[0];
 
   const [formData, setFormData] = useState({
-    fecha: hoy,
-    empresa: EMPRESAS[0],
+    fecha:       hoy,
+    empresa:     EMPRESAS[0],
     metodoCobro: METODOS_COBRO[0],
-    tipoPago: TIPOS_PAGO[0],
-    moneda: MONEDAS[1], // USD por defecto
-    monto: '',
+    tipoPago:    TIPOS_PAGO[0],
+    moneda:      MONEDAS[1],
+    monto:       '',
     descripcion: '',
-    cliente: ''
+    cliente:     ''
   });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     if (!formData.monto || Number(formData.monto) <= 0) {
       alert('Por favor ingresa un monto válido');
       return;
     }
-
-    const nuevoIngreso = {
-      id: uuidv4(),
-      ...formData,
-      monto: Number(formData.monto)
-    };
-
-    onGuardar(nuevoIngreso);
+    onGuardar({ id: uuidv4(), ...formData, monto: Number(formData.monto) });
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
-      <div className="bg-gradient-to-r from-green-600 to-emerald-600 text-white p-6 shadow-lg">
-        <h1 className="text-3xl font-bold mb-2">Nuevo Ingreso</h1>
-        <p className="text-green-100">Registra un nuevo ingreso</p>
+    <div className="min-h-screen bg-dark-bg pb-20 animate-fadeIn">
+
+      {/* Header */}
+      <div className="glass-card border-b border-white/[0.06] px-6 py-5 mb-6">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onCancelar}
+            className="text-silver-dim hover:text-silver transition-premium text-lg"
+          >
+            ←
+          </button>
+          <div>
+            <h1 className="font-display text-xl font-semibold text-silver tracking-widest">NUEVO INGRESO</h1>
+            <p className="text-dark-textSecondary text-xs mt-0.5">Registra un ingreso</p>
+          </div>
+        </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-6">
-        <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-md p-6 space-y-4">
+      <div className="max-w-2xl mx-auto px-4">
+        <form onSubmit={handleSubmit} className="glass-card rounded-premium p-6 border border-silver/10 space-y-5">
+
           {/* Fecha */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Fecha *
-            </label>
+            <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Fecha *</label>
             <input
               type="date"
               name="fecha"
               value={formData.fecha}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="input-premium"
+              style={{ colorScheme: 'dark' }}
             />
           </div>
 
           {/* Empresa */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Empresa *
-            </label>
-            <select
-              name="empresa"
-              value={formData.empresa}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              {EMPRESAS.map(empresa => (
-                <option key={empresa} value={empresa}>
-                  {empresa}
-                </option>
-              ))}
+            <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Empresa *</label>
+            <select name="empresa" value={formData.empresa} onChange={handleChange} required className="input-premium">
+              {EMPRESAS.map(e => <option key={e} value={e}>{e}</option>)}
             </select>
           </div>
 
           {/* Método de Cobro */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Método de Cobro *
-            </label>
-            <select
-              name="metodoCobro"
-              value={formData.metodoCobro}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              {METODOS_COBRO.map(metodo => (
-                <option key={metodo} value={metodo}>
-                  {metodo}
-                </option>
-              ))}
+            <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Método de Cobro *</label>
+            <select name="metodoCobro" value={formData.metodoCobro} onChange={handleChange} required className="input-premium">
+              {METODOS_COBRO.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
 
           {/* Tipo de Pago */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Tipo de Pago *
-            </label>
-            <select
-              name="tipoPago"
-              value={formData.tipoPago}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            >
-              {TIPOS_PAGO.map(tipo => (
-                <option key={tipo} value={tipo}>
-                  {tipo}
-                </option>
-              ))}
+            <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Tipo de Pago *</label>
+            <select name="tipoPago" value={formData.tipoPago} onChange={handleChange} required className="input-premium">
+              {TIPOS_PAGO.map(t => <option key={t} value={t}>{t}</option>)}
             </select>
           </div>
 
-          {/* Moneda y Monto */}
+          {/* Moneda + Monto */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Moneda *
-              </label>
-              <select
-                name="moneda"
-                value={formData.moneda}
-                onChange={handleChange}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              >
-                {MONEDAS.map(moneda => (
-                  <option key={moneda} value={moneda}>
-                    {moneda}
-                  </option>
-                ))}
+              <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Moneda *</label>
+              <select name="moneda" value={formData.moneda} onChange={handleChange} required className="input-premium">
+                {MONEDAS.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
-
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Monto *
-              </label>
+              <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Monto *</label>
               <input
                 type="number"
                 name="monto"
@@ -159,53 +109,46 @@ const FormularioIngreso = ({ onGuardar, onCancelar }) => {
                 min="0"
                 step="0.01"
                 placeholder="0.00"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="input-premium"
               />
             </div>
           </div>
 
           {/* Cliente */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Cliente
-            </label>
+            <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Cliente</label>
             <input
               type="text"
               name="cliente"
               value={formData.cliente}
               onChange={handleChange}
               placeholder="Nombre del cliente (opcional)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="input-premium"
             />
           </div>
 
           {/* Descripción */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Descripción
-            </label>
+            <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Descripción</label>
             <textarea
               name="descripcion"
               value={formData.descripcion}
               onChange={handleChange}
               placeholder="Detalles adicionales (opcional)"
               rows="3"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="input-premium resize-none"
             />
           </div>
 
           {/* Botones */}
-          <div className="flex gap-4 pt-4">
-            <button
-              type="submit"
-              className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-green-700 transition-colors"
-            >
-              Guardar Ingreso
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="flex-1 btn-premium py-3 text-sm tracking-widest">
+              GUARDAR INGRESO
             </button>
             <button
               type="button"
               onClick={onCancelar}
-              className="flex-1 bg-gray-200 text-gray-700 py-3 px-6 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
+              className="flex-1 bg-dark-bgSecondary text-dark-textSecondary py-3 rounded-button font-semibold hover:bg-opacity-80 transition-premium border border-white/[0.06] text-sm"
             >
               Cancelar
             </button>

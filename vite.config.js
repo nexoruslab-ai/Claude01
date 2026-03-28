@@ -6,5 +6,18 @@ export default defineConfig({
   server: {
     port: 3000,
     open: true
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react':  ['react', 'react-dom'],
+          'vendor-charts': ['chart.js', 'react-chartjs-2'],
+          'vendor-icons':  ['@heroicons/react'],
+          'vendor-utils':  ['uuid'],
+        }
+      }
+    },
+    chunkSizeWarningLimit: 600,
   }
 })

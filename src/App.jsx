@@ -10,119 +10,77 @@ import { getStoredLanguage, setStoredLanguage } from './utils/i18n.js';
 import { initializeTheme, toggleTheme as toggleThemeUtil, setStoredTheme, applyTheme } from './utils/theme.js';
 import { getStoredDisplayCurrency, setStoredDisplayCurrency } from './utils/currency.js';
 import { getCurrentExchangeRate, processTransactionWithCurrency } from './utils/exchangeRate.js';
-import { SunIcon, MoonIcon, LanguageIcon } from '@heroicons/react/24/solid';
+import { LanguageIcon } from '@heroicons/react/24/solid';
 import { ChartBarIcon, FireIcon, PlusIcon, ClockIcon } from '@heroicons/react/24/outline';
 
-// Constantes para localStorage
-const STORAGE_KEY_INGRESOS = 'finflow_ingresos';
-const STORAGE_KEY_GASTOS = 'finflow_gastos';
+const STORAGE_KEY_INGRESOS = 'denarium_ingresos';
+const STORAGE_KEY_GASTOS   = 'denarium_gastos';
 
 function App() {
-  // Estado para datos
-  const [ingresos, setIngresos] = useState([]);
-  const [gastos, setGastos] = useState([]);
-
-  // Estado para navegación
-  const [vistaActual, setVistaActual] = useState('dashboard');
+  const [ingresos, setIngresos]               = useState([]);
+  const [gastos, setGastos]                   = useState([]);
+  const [vistaActual, setVistaActual]         = useState('dashboard');
   const [mostrarModalTipo, setMostrarModalTipo] = useState(false);
-
-  // Estado para edición
   const [transaccionEditar, setTransaccionEditar] = useState(null);
-
-  // Estado para configuración
-  const [language, setLanguage] = useState('es');
-  const [theme, setTheme] = useState('dark');
+  const [language, setLanguage]               = useState('es');
+  const [theme, setTheme]                     = useState('dark');
   const [displayCurrency, setDisplayCurrency] = useState('USD');
-  const [exchangeRate, setExchangeRate] = useState(null);
+  const [exchangeRate, setExchangeRate]       = useState(null);
+  const [toast, setToast]                     = useState(null);
 
-  // Estado para notificaciones
-  const [toast, setToast] = useState(null);
-
-  // Inicializar configuración
   useEffect(() => {
-    // Tema
     const savedTheme = initializeTheme();
     setTheme(savedTheme);
-
-    // Idioma
     const savedLanguage = getStoredLanguage();
     setLanguage(savedLanguage);
-
-    // Moneda de visualización
     const savedCurrency = getStoredDisplayCurrency();
     setDisplayCurrency(savedCurrency);
-
-    // Obtener tasa de cambio
     fetchExchangeRate();
   }, []);
 
-  // Cargar datos desde localStorage
   useEffect(() => {
     try {
-      const ingresosGuardados = localStorage.getItem(STORAGE_KEY_INGRESOS);
-      const gastosGuardados = localStorage.getItem(STORAGE_KEY_GASTOS);
-
-      if (ingresosGuardados) {
-        setIngresos(JSON.parse(ingresosGuardados));
-      }
-
-      if (gastosGuardados) {
-        setGastos(JSON.parse(gastosGuardados));
-      }
-    } catch (error) {
-      console.error('Error al cargar datos:', error);
-    }
+      const ing = localStorage.getItem(STORAGE_KEY_INGRESOS);
+      const gas = localStorage.getItem(STORAGE_KEY_GASTOS);
+      if (ing) setIngresos(JSON.parse(ing));
+      if (gas) setGastos(JSON.parse(gas));
+    } catch (e) { console.error('Error al cargar datos:', e); }
   }, []);
 
-  // Guardar ingresos en localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_INGRESOS, JSON.stringify(ingresos));
-    } catch (error) {
-      console.error('Error al guardar ingresos:', error);
-    }
+    try { localStorage.setItem(STORAGE_KEY_INGRESOS, JSON.stringify(ingresos)); }
+    catch (e) { console.error('Error al guardar ingresos:', e); }
   }, [ingresos]);
 
-  // Guardar gastos en localStorage
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY_GASTOS, JSON.stringify(gastos));
-    } catch (error) {
-      console.error('Error al guardar gastos:', error);
-    }
+    try { localStorage.setItem(STORAGE_KEY_GASTOS, JSON.stringify(gastos)); }
+    catch (e) { console.error('Error al guardar gastos:', e); }
   }, [gastos]);
 
-  // Obtener tasa de cambio de la API
   const fetchExchangeRate = async () => {
     try {
       const rate = await getCurrentExchangeRate();
       setExchangeRate(rate);
-    } catch (error) {
-      console.error('Error fetching exchange rate:', error);
+    } catch (e) {
+      console.error('Error fetching exchange rate:', e);
       showToast('Error al obtener tipo de cambio', 'error');
     }
   };
 
-  // Calcular balance general
   const balance = calcularBalanceGeneral(ingresos, gastos);
 
-  // Handlers para agregar/editar transacciones
   const handleGuardarIngreso = (nuevoIngreso) => {
     if (exchangeRate) {
       const ingresoConConversion = processTransactionWithCurrency(nuevoIngreso, exchangeRate);
-
       if (transaccionEditar) {
-        // Editar ingreso existente
         setIngresos(prev => prev.map(i => i.id === transaccionEditar.id ? ingresoConConversion : i));
         showToast(language === 'es' ? 'Ingreso actualizado exitosamente' : 'Income updated successfully', 'success');
         setTransaccionEditar(null);
       } else {
-        // Nuevo ingreso
         setIngresos(prev => [...prev, ingresoConConversion]);
         showToast(language === 'es' ? 'Ingreso guardado exitosamente' : 'Income saved successfully', 'success');
       }
     }
-
     setVistaActual('dashboard');
     setMostrarModalTipo(false);
   };
@@ -130,63 +88,43 @@ function App() {
   const handleGuardarGasto = (nuevoGasto) => {
     if (exchangeRate) {
       const gastoConConversion = processTransactionWithCurrency(nuevoGasto, exchangeRate);
-
       if (transaccionEditar) {
-        // Editar gasto existente
         setGastos(prev => prev.map(g => g.id === transaccionEditar.id ? gastoConConversion : g));
         showToast(language === 'es' ? 'Gasto actualizado exitosamente' : 'Expense updated successfully', 'success');
         setTransaccionEditar(null);
       } else {
-        // Nuevo gasto
         setGastos(prev => [...prev, gastoConConversion]);
         showToast(language === 'es' ? 'Gasto guardado exitosamente' : 'Expense saved successfully', 'success');
       }
     }
-
     setVistaActual('dashboard');
     setMostrarModalTipo(false);
   };
 
-  // Handler para eliminar transacciones
   const handleEliminarTransaccion = (id, tipo) => {
-    if (tipo === 'ingreso') {
-      setIngresos(prev => prev.filter(i => i.id !== id));
-    } else {
-      setGastos(prev => prev.filter(g => g.id !== id));
-    }
-    showToast(language === 'es' ? 'Transacción eliminada exitosamente' : 'Transaction deleted successfully', 'success');
+    if (tipo === 'ingreso') setIngresos(prev => prev.filter(i => i.id !== id));
+    else setGastos(prev => prev.filter(g => g.id !== id));
+    showToast(language === 'es' ? 'Transacción eliminada' : 'Transaction deleted', 'success');
   };
 
-  // Handler para editar transacción
   const handleEditarTransaccion = (transaccion, tipo) => {
     setTransaccionEditar(transaccion);
-    if (tipo === 'ingreso') {
-      setVistaActual('nuevoIngreso');
-    } else {
-      setVistaActual('nuevoGasto');
-    }
+    setVistaActual(tipo === 'ingreso' ? 'nuevoIngreso' : 'nuevoGasto');
   };
 
-  // Handler para cancelar formularios
   const handleCancelar = () => {
     setVistaActual('dashboard');
     setMostrarModalTipo(false);
     setTransaccionEditar(null);
   };
 
-  // Handler para nueva transacción
   const handleNuevaTransaccion = (tipo) => {
     setTransaccionEditar(null);
-    if (tipo === 'ingreso') {
-      setVistaActual('nuevoIngreso');
-    } else if (tipo === 'gasto') {
-      setVistaActual('nuevoGasto');
-    } else {
-      setMostrarModalTipo(true);
-    }
+    if (tipo === 'ingreso')     setVistaActual('nuevoIngreso');
+    else if (tipo === 'gasto')  setVistaActual('nuevoGasto');
+    else                        setMostrarModalTipo(true);
   };
 
-  // Handlers para configuración
   const handleToggleTheme = () => {
     const newTheme = toggleThemeUtil(theme);
     setTheme(newTheme);
@@ -206,129 +144,74 @@ function App() {
     setStoredDisplayCurrency(newCurrency);
   };
 
-  // Mostrar toast
-  const showToast = (message, type = 'success') => {
-    setToast({ message, type });
-  };
+  const showToast = (message, type = 'success') => setToast({ message, type });
 
-  // Renderizar vista actual
   const renderVista = () => {
     switch (vistaActual) {
       case 'dashboard':
-        return (
-          <Dashboard
-            balance={balance}
-            onNuevaTransaccion={handleNuevaTransaccion}
-            language={language}
-            displayCurrency={displayCurrency}
-            exchangeRate={exchangeRate}
-          />
-        );
+        return <Dashboard balance={balance} onNuevaTransaccion={handleNuevaTransaccion} language={language} displayCurrency={displayCurrency} exchangeRate={exchangeRate} />;
       case 'prioridades':
-        return (
-          <SistemaPrioridades
-            distribucion={balance.distribucion}
-            language={language}
-            displayCurrency={displayCurrency}
-            exchangeRate={exchangeRate}
-          />
-        );
+        return <SistemaPrioridades distribucion={balance.distribucion} language={language} displayCurrency={displayCurrency} exchangeRate={exchangeRate} />;
       case 'nuevoIngreso':
-        return (
-          <FormularioIngreso
-            onGuardar={handleGuardarIngreso}
-            onCancelar={handleCancelar}
-            language={language}
-            transaccion={transaccionEditar}
-          />
-        );
+        return <FormularioIngreso onGuardar={handleGuardarIngreso} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} />;
       case 'nuevoGasto':
-        return (
-          <FormularioGasto
-            onGuardar={handleGuardarGasto}
-            onCancelar={handleCancelar}
-            language={language}
-            transaccion={transaccionEditar}
-          />
-        );
+        return <FormularioGasto onGuardar={handleGuardarGasto} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} />;
       case 'historial':
-        return (
-          <Historial
-            ingresos={ingresos}
-            gastos={gastos}
-            onEliminar={handleEliminarTransaccion}
-            onEditar={handleEditarTransaccion}
-            language={language}
-            displayCurrency={displayCurrency}
-            exchangeRate={exchangeRate}
-          />
-        );
+        return <Historial ingresos={ingresos} gastos={gastos} onEliminar={handleEliminarTransaccion} onEditar={handleEditarTransaccion} language={language} displayCurrency={displayCurrency} exchangeRate={exchangeRate} />;
       default:
-        return (
-          <Dashboard
-            balance={balance}
-            onNuevaTransaccion={handleNuevaTransaccion}
-            language={language}
-            displayCurrency={displayCurrency}
-            exchangeRate={exchangeRate}
-          />
-        );
+        return <Dashboard balance={balance} onNuevaTransaccion={handleNuevaTransaccion} language={language} displayCurrency={displayCurrency} exchangeRate={exchangeRate} />;
     }
   };
 
+  const enFormulario = ['nuevoIngreso', 'nuevoGasto'].includes(vistaActual);
+
   return (
-    <div className="min-h-screen bg-light-bg dark:bg-dark-bg transition-colors">
-      {/* Header con controles premium */}
-      {!['nuevoIngreso', 'nuevoGasto'].includes(vistaActual) && (
-        <div className="fixed top-0 left-0 right-0 z-30 glass-card dark:glass-card border-b border-white/10 backdrop-blur-glass">
-          <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center justify-end gap-3">
-              {/* Selector de moneda */}
+    <div className="min-h-screen bg-dark-bg">
+
+      {/* ── Header ── */}
+      {!enFormulario && (
+        <div className="fixed top-0 left-0 right-0 z-30 glass-card border-b border-white/[0.06] backdrop-blur-glass">
+          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+
+            {/* Logo DENARIUM */}
+            <span className="font-display text-silver text-sm tracking-[0.2em] select-none">
+              DENARIUM
+            </span>
+
+            {/* Controles */}
+            <div className="flex items-center gap-2">
               <button
                 onClick={handleToggleCurrency}
-                className="glass-card dark:glass-card px-4 py-2 rounded-button hover:shadow-elevation-1 transition-premium flex items-center gap-2 border border-white/10"
+                className="glass-card px-3 py-1.5 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium"
                 title={`Ver en ${displayCurrency === 'USD' ? 'ARS' : 'USD'}`}
               >
-                <span className="font-mono font-semibold text-gold text-sm">{displayCurrency}</span>
+                <span className="font-mono font-semibold text-silver text-xs">{displayCurrency}</span>
               </button>
 
-              {/* Toggle de idioma */}
               <button
                 onClick={handleToggleLanguage}
-                className="glass-card dark:glass-card p-2 rounded-button hover:shadow-elevation-1 transition-premium border border-white/10"
+                className="glass-card p-2 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium flex items-center gap-1"
                 title={language === 'es' ? 'Switch to English' : 'Cambiar a Español'}
               >
-                <LanguageIcon className="w-5 h-5 text-gold" />
-                <span className="ml-1 text-xs font-semibold text-gold">{language.toUpperCase()}</span>
-              </button>
-
-              {/* Toggle de tema */}
-              <button
-                onClick={handleToggleTheme}
-                className="glass-card dark:glass-card p-2 rounded-button hover:shadow-elevation-1 transition-premium border border-white/10"
-                title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
-              >
-                {theme === 'dark' ? (
-                  <SunIcon className="w-5 h-5 text-gold" />
-                ) : (
-                  <MoonIcon className="w-5 h-5 text-gold" />
-                )}
+                <LanguageIcon className="w-4 h-4 text-silver-dark" />
+                <span className="text-[10px] font-semibold text-silver-dark">{language.toUpperCase()}</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Contenido principal */}
-      <div className={`max-w-7xl mx-auto p-4 ${!['nuevoIngreso', 'nuevoGasto'].includes(vistaActual) ? 'pt-20' : ''}`}>
+      {/* ── Contenido principal ── */}
+      <div className={`max-w-7xl mx-auto p-4 ${!enFormulario ? 'pt-20' : ''}`}>
         {renderVista()}
       </div>
 
-      {/* Barra de navegación inferior premium */}
-      {!['nuevoIngreso', 'nuevoGasto'].includes(vistaActual) && (
-        <nav className="fixed bottom-0 left-0 right-0 glass-card dark:glass-card border-t border-white/10 shadow-elevation-3 z-30 backdrop-blur-glass">
+      {/* ── Barra de navegación inferior ── */}
+      {!enFormulario && (
+        <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-white/[0.06] shadow-elevation-3 z-30 backdrop-blur-glass">
           <div className="max-w-7xl mx-auto px-4">
             <div className="flex justify-around items-center h-16">
+
               <NavButton
                 icon={<ChartBarIcon className="w-6 h-6" />}
                 label={language === 'es' ? 'Dashboard' : 'Dashboard'}
@@ -343,14 +226,15 @@ function App() {
                 onClick={() => setVistaActual('prioridades')}
               />
 
+              {/* FAB central */}
               <button
                 onClick={() => handleNuevaTransaccion()}
                 className="flex flex-col items-center justify-center flex-1 h-full transition-premium"
               >
-                <div className="bg-gradient-gold text-dark-bg rounded-full w-12 h-12 flex items-center justify-center shadow-glow-gold hover:shadow-elevation-2 transition-premium hover-scale mb-1">
+                <div className="bg-gradient-silver text-dark-bg rounded-full w-12 h-12 flex items-center justify-center shadow-glow-silver hover:shadow-glow-silver-lg transition-premium hover-scale mb-1">
                   <PlusIcon className="w-6 h-6" />
                 </div>
-                <span className="text-xs font-medium text-dark-textSecondary dark:text-dark-textSecondary">
+                <span className="text-xs font-medium text-silver-dim">
                   {language === 'es' ? 'Agregar' : 'Add'}
                 </span>
               </button>
@@ -366,49 +250,41 @@ function App() {
         </nav>
       )}
 
-      {/* Modal para seleccionar tipo de transacción */}
+      {/* ── Modal tipo de transacción ── */}
       {mostrarModalTipo && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-40 p-4 animate-fadeIn"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-40 p-4 animate-fadeIn"
           onClick={() => setMostrarModalTipo(false)}
         >
           <div
-            className="glass-card dark:glass-card rounded-premium shadow-elevation-3 p-6 max-w-sm w-full border border-gold/20 animate-slideUp"
+            className="glass-card rounded-premium shadow-elevation-3 p-6 max-w-sm w-full border border-silver/10 animate-slideUp"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-2xl font-bold mb-4 text-dark-text dark:text-dark-text">
-              {language === 'es' ? 'Nueva Transacción' : 'New Transaction'}
+            <h2 className="font-display text-xl font-semibold mb-2 text-silver tracking-widest">
+              {language === 'es' ? 'NUEVA TRANSACCIÓN' : 'NEW TRANSACTION'}
             </h2>
-            <p className="text-dark-textSecondary dark:text-dark-textSecondary mb-6">
+            <p className="text-dark-textSecondary text-sm mb-6">
               {language === 'es' ? '¿Qué deseas registrar?' : 'What do you want to register?'}
             </p>
 
             <div className="space-y-3">
               <button
-                onClick={() => {
-                  setVistaActual('nuevoIngreso');
-                  setMostrarModalTipo(false);
-                }}
-                className="w-full btn-premium text-center py-4"
+                onClick={() => { setVistaActual('nuevoIngreso'); setMostrarModalTipo(false); }}
+                className="w-full btn-premium text-center py-4 text-sm tracking-widest"
               >
-                <span className="text-xl mr-2">↑</span>
-                <span>{language === 'es' ? 'Ingreso' : 'Income'}</span>
+                ↑&nbsp;&nbsp;{language === 'es' ? 'INGRESO' : 'INCOME'}
               </button>
 
               <button
-                onClick={() => {
-                  setVistaActual('nuevoGasto');
-                  setMostrarModalTipo(false);
-                }}
-                className="w-full bg-red-600 text-white py-4 rounded-button font-semibold hover:bg-red-700 transition-premium shadow-elevation-1 hover:shadow-elevation-2"
+                onClick={() => { setVistaActual('nuevoGasto'); setMostrarModalTipo(false); }}
+                className="w-full bg-silver-muted text-silver-bright py-4 rounded-button font-semibold hover:bg-silver-deep transition-premium shadow-elevation-1 tracking-widest text-sm"
               >
-                <span className="text-xl mr-2">↓</span>
-                <span>{language === 'es' ? 'Gasto' : 'Expense'}</span>
+                ↓&nbsp;&nbsp;{language === 'es' ? 'GASTO' : 'EXPENSE'}
               </button>
 
               <button
                 onClick={() => setMostrarModalTipo(false)}
-                className="w-full bg-dark-bgSecondary dark:bg-dark-bgSecondary text-dark-textSecondary dark:text-dark-textSecondary py-4 rounded-button font-semibold hover:bg-opacity-80 transition-premium border border-white/10"
+                className="w-full bg-dark-bgSecondary text-dark-textSecondary py-4 rounded-button font-semibold hover:bg-opacity-80 transition-premium border border-white/[0.06] text-sm"
               >
                 {language === 'es' ? 'Cancelar' : 'Cancel'}
               </button>
@@ -417,33 +293,25 @@ function App() {
         </div>
       )}
 
-      {/* Toast de notificaciones */}
+      {/* ── Toast ── */}
       {toast && (
-        <Toast
-          message={toast.message}
-          type={toast.type}
-          onClose={() => setToast(null)}
-        />
+        <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />
       )}
     </div>
   );
 }
 
-// Componente auxiliar para botones de navegación
-const NavButton = ({ icon, label, active, onClick }) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center flex-1 h-full transition-premium ${
-        active
-          ? 'text-gold'
-          : 'text-dark-textSecondary dark:text-dark-textSecondary hover:text-gold'
-      }`}
-    >
-      {icon}
-      <span className="text-xs font-medium mt-1">{label}</span>
-    </button>
-  );
-};
+// Botón de navegación
+const NavButton = ({ icon, label, active, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`flex flex-col items-center justify-center flex-1 h-full transition-premium ${
+      active ? 'text-silver' : 'text-dark-textSecondary hover:text-silver-dark'
+    }`}
+  >
+    {icon}
+    <span className="text-xs font-medium mt-1">{label}</span>
+  </button>
+);
 
 export default App;

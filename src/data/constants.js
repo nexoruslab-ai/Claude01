@@ -55,17 +55,17 @@ export const CATEGORIAS = [
 ];
 
 // SISTEMA DE PRIORIDADES CON METAS
-// Orden estricto de distribución en cascada
+// Palette: Silver / Black / Gray — sin colores externos
 export const PRIORIDADES = [
-  // PRIORIDAD 01 - Crítico (Rojo)
+  // PRIORIDAD 01 — Crítico (silver brillante)
   {
     numero: 0,
     categoria: 'SAGRADO 40%',
-    meta: 0, // Se calcula automáticamente como 40% del total
+    meta: 0,
     prioridad: 1,
-    color: '#dc2626',
-    colorBg: '#fee2e2',
-    nivelNombre: 'PRIORIDAD 01 - Crítico',
+    color: '#e8e8e8',
+    colorBg: 'rgba(232, 232, 232, 0.08)',
+    nivelNombre: 'PRIORIDAD 01 — Crítico',
     esSagrado: true
   },
   {
@@ -73,185 +73,185 @@ export const PRIORIDADES = [
     categoria: 'Tarjeta Credito 01',
     meta: 0,
     prioridad: 1,
-    color: '#dc2626',
-    colorBg: '#fee2e2',
-    nivelNombre: 'PRIORIDAD 01 - Crítico'
+    color: '#e8e8e8',
+    colorBg: 'rgba(232, 232, 232, 0.08)',
+    nivelNombre: 'PRIORIDAD 01 — Crítico'
   },
   {
     numero: 2,
     categoria: 'Tarjeta Credito 02',
     meta: 0,
     prioridad: 1,
-    color: '#dc2626',
-    colorBg: '#fee2e2',
-    nivelNombre: 'PRIORIDAD 01 - Crítico'
+    color: '#e8e8e8',
+    colorBg: 'rgba(232, 232, 232, 0.08)',
+    nivelNombre: 'PRIORIDAD 01 — Crítico'
   },
   {
     numero: 3,
     categoria: 'Tarjeta ADS',
     meta: 0,
     prioridad: 1,
-    color: '#dc2626',
-    colorBg: '#fee2e2',
-    nivelNombre: 'PRIORIDAD 01 - Crítico'
+    color: '#e8e8e8',
+    colorBg: 'rgba(232, 232, 232, 0.08)',
+    nivelNombre: 'PRIORIDAD 01 — Crítico'
   },
   {
     numero: 4,
     categoria: 'Comida',
     meta: 200,
     prioridad: 1,
-    color: '#dc2626',
-    colorBg: '#fee2e2',
-    nivelNombre: 'PRIORIDAD 01 - Crítico'
+    color: '#e8e8e8',
+    colorBg: 'rgba(232, 232, 232, 0.08)',
+    nivelNombre: 'PRIORIDAD 01 — Crítico'
   },
 
-  // PRIORIDAD 02 - Importante (Naranja)
+  // PRIORIDAD 02 — Importante (silver)
   {
     numero: 5,
     categoria: 'Gimnasio',
     meta: 20,
     prioridad: 2,
-    color: '#ea580c',
-    colorBg: '#ffedd5',
-    nivelNombre: 'PRIORIDAD 02 - Importante'
+    color: '#c0c0c0',
+    colorBg: 'rgba(192, 192, 192, 0.08)',
+    nivelNombre: 'PRIORIDAD 02 — Importante'
   },
   {
     numero: 6,
     categoria: 'Suplementación',
     meta: 40,
     prioridad: 2,
-    color: '#ea580c',
-    colorBg: '#ffedd5',
-    nivelNombre: 'PRIORIDAD 02 - Importante'
+    color: '#c0c0c0',
+    colorBg: 'rgba(192, 192, 192, 0.08)',
+    nivelNombre: 'PRIORIDAD 02 — Importante'
   },
   {
     numero: 7,
     categoria: 'Jiujitsu',
     meta: 20,
     prioridad: 2,
-    color: '#ea580c',
-    colorBg: '#ffedd5',
-    nivelNombre: 'PRIORIDAD 02 - Importante'
+    color: '#c0c0c0',
+    colorBg: 'rgba(192, 192, 192, 0.08)',
+    nivelNombre: 'PRIORIDAD 02 — Importante'
   },
   {
     numero: 8,
     categoria: 'Pago a padre',
     meta: 250,
     prioridad: 2,
-    color: '#ea580c',
-    colorBg: '#ffedd5',
-    nivelNombre: 'PRIORIDAD 02 - Importante'
+    color: '#c0c0c0',
+    colorBg: 'rgba(192, 192, 192, 0.08)',
+    nivelNombre: 'PRIORIDAD 02 — Importante'
   },
 
-  // PRIORIDAD 03 - Inversiones (Amarillo)
+  // PRIORIDAD 03 — Inversiones (silver opaco)
   {
     numero: 9,
     categoria: 'Membresias Software',
     meta: 100,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
   {
     numero: 10,
     categoria: 'Membresia Knowledge',
     meta: 100,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
   {
     numero: 11,
     categoria: 'Bravium Emperium',
     meta: 100,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
   {
     numero: 12,
     categoria: 'SwissJust',
     meta: 100,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
   {
     numero: 13,
     categoria: 'Nexorus LLC',
     meta: 100,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
   {
     numero: 14,
     categoria: 'Airbnb',
     meta: 0,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
   {
     numero: 15,
     categoria: 'OFAI',
     meta: 0,
     prioridad: 3,
-    color: '#ca8a04',
-    colorBg: '#fef9c3',
-    nivelNombre: 'PRIORIDAD 03 - Inversiones'
+    color: '#a0a0a0',
+    colorBg: 'rgba(160, 160, 160, 0.08)',
+    nivelNombre: 'PRIORIDAD 03 — Inversiones'
   },
 
-  // PRIORIDAD 04 - Calidad de vida (Verde)
+  // PRIORIDAD 04 — Calidad de vida (gris profundo)
   {
     numero: 16,
     categoria: 'Regalos',
     meta: 50,
     prioridad: 4,
-    color: '#16a34a',
-    colorBg: '#dcfce7',
-    nivelNombre: 'PRIORIDAD 04 - Calidad de vida'
+    color: '#808080',
+    colorBg: 'rgba(128, 128, 128, 0.08)',
+    nivelNombre: 'PRIORIDAD 04 — Calidad de vida'
   },
   {
     numero: 17,
     categoria: 'Ofrendas',
     meta: 50,
     prioridad: 4,
-    color: '#16a34a',
-    colorBg: '#dcfce7',
-    nivelNombre: 'PRIORIDAD 04 - Calidad de vida'
+    color: '#808080',
+    colorBg: 'rgba(128, 128, 128, 0.08)',
+    nivelNombre: 'PRIORIDAD 04 — Calidad de vida'
   },
   {
     numero: 18,
     categoria: 'Viajes',
     meta: 700,
     prioridad: 4,
-    color: '#16a34a',
-    colorBg: '#dcfce7',
-    nivelNombre: 'PRIORIDAD 04 - Calidad de vida'
+    color: '#808080',
+    colorBg: 'rgba(128, 128, 128, 0.08)',
+    nivelNombre: 'PRIORIDAD 04 — Calidad de vida'
   },
   {
     numero: 19,
     categoria: 'Estilo de vida',
     meta: 0,
     prioridad: 4,
-    color: '#16a34a',
-    colorBg: '#dcfce7',
-    nivelNombre: 'PRIORIDAD 04 - Calidad de vida'
+    color: '#808080',
+    colorBg: 'rgba(128, 128, 128, 0.08)',
+    nivelNombre: 'PRIORIDAD 04 — Calidad de vida'
   }
 ];
 
-// Colores de gráficos para las empresas
+// Colores de gráficos — Shades de gris/plata
 export const COLORES_EMPRESAS = {
-  'Bravium Emperium': '#3b82f6',
-  'SwissJust': '#8b5cf6',
-  'Nexorus LLC': '#ec4899',
-  'Airbnb': '#f97316',
-  'OFAI': '#14b8a6'
+  'Bravium Emperium': '#e8e8e8',
+  'SwissJust':        '#c0c0c0',
+  'Nexorus LLC':      '#a0a0a0',
+  'Airbnb':           '#808080',
+  'OFAI':             '#606060'
 };
