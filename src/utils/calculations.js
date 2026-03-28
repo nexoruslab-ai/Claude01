@@ -38,17 +38,21 @@ export const calcularTotalGastos = (gastos) => {
 };
 
 /**
- * Calcula el Sagrado 40% (siempre primero)
+ * Calcula el % de ahorro sagrado (configurable, default 40%)
+ * @param {number} totalIngresos
+ * @param {number} porcentajeAhorro - 0 a 100 (default 40)
  */
-export const calcularSagrado40 = (totalIngresos) => {
-  return totalIngresos * 0.4;
+export const calcularSagrado40 = (totalIngresos, porcentajeAhorro = 40) => {
+  return totalIngresos * (porcentajeAhorro / 100);
 };
 
 /**
- * Calcula el disponible 60% para distribución
+ * Calcula el disponible para distribución (100% - porcentajeAhorro)
+ * @param {number} totalIngresos
+ * @param {number} porcentajeAhorro - 0 a 100 (default 40)
  */
-export const calcularDisponible60 = (totalIngresos) => {
-  return totalIngresos * 0.6;
+export const calcularDisponible60 = (totalIngresos, porcentajeAhorro = 40) => {
+  return totalIngresos * ((100 - porcentajeAhorro) / 100);
 };
 
 /**
@@ -82,9 +86,9 @@ export const calcularGastosPorCategoria = (gastos) => {
  * @param {object} gastosPorCategoria - Gastos agrupados por categoría
  * @returns {Array} - Array con información de distribución por categoría
  */
-export const calcularDistribucionCascada = (totalIngresos, gastosPorCategoria) => {
-  const sagrado40 = calcularSagrado40(totalIngresos);
-  let disponible60 = calcularDisponible60(totalIngresos);
+export const calcularDistribucionCascada = (totalIngresos, gastosPorCategoria, porcentajeAhorro = 40) => {
+  const sagrado40 = calcularSagrado40(totalIngresos, porcentajeAhorro);
+  let disponible60 = calcularDisponible60(totalIngresos, porcentajeAhorro);
 
   const resultados = [];
 
@@ -178,16 +182,16 @@ export const calcularIngresosPorEmpresa = (ingresos) => {
 /**
  * Calcula el balance general completo
  */
-export const calcularBalanceGeneral = (ingresos, gastos) => {
+export const calcularBalanceGeneral = (ingresos, gastos, porcentajeAhorro = 40) => {
   const totalIngresos = calcularTotalIngresos(ingresos);
   const totalGastos = calcularTotalGastos(gastos);
-  const sagrado40 = calcularSagrado40(totalIngresos);
-  const disponible60 = calcularDisponible60(totalIngresos);
+  const sagrado40 = calcularSagrado40(totalIngresos, porcentajeAhorro);
+  const disponible60 = calcularDisponible60(totalIngresos, porcentajeAhorro);
   const balanceNeto = totalIngresos - totalGastos;
   const disponibleReal = disponible60 - totalGastos;
 
   const gastosPorCategoria = calcularGastosPorCategoria(gastos);
-  const distribucion = calcularDistribucionCascada(totalIngresos, gastosPorCategoria);
+  const distribucion = calcularDistribucionCascada(totalIngresos, gastosPorCategoria, porcentajeAhorro);
   const ingresosPorEmpresa = calcularIngresosPorEmpresa(ingresos);
 
   return {
