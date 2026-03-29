@@ -8,6 +8,7 @@ import Cuentas from './components/Cuentas.jsx';
 import Negocios from './components/Negocios.jsx';
 import Proyectos from './components/Proyectos.jsx';
 import Registros from './components/Registros.jsx';
+import Configuracion from './components/Configuracion.jsx';
 import Toast from './components/Toast.jsx';
 import { calcularBalanceGeneral } from './utils/calculations.js';
 import { getStoredLanguage, setStoredLanguage } from './utils/i18n.js';
@@ -40,10 +41,34 @@ const SK_CUENTAS   = 'denarium_cuentas';
 const SK_NEGOCIOS  = 'denarium_negocios';
 const SK_PROYECTOS = 'denarium_proyectos';
 
-// ── Config por defecto ────────────────────────────────────────────────────
+// ── Config por defecto — 100% configurable por cualquier usuario ──────────
 const CONFIG_DEFAULT = {
+  // Finanzas
   porcentajeAhorro: 40,
+  // Tasas de cambio (USD como moneda base)
   tasas: { usdToArs: 1453.73, usdtToUsd: 0.999 },
+  // Monedas activas (el usuario elige cuáles usa)
+  monedasActivas: ['USD', 'ARS', 'USDT'],
+  // Monedas extra disponibles
+  monedasDisponibles: [
+    { code: 'USD',  nombre: 'Dólar (USD)',         simbolo: '$',  tasaVsUSD: 1 },
+    { code: 'ARS',  nombre: 'Peso argentino (ARS)',simbolo: '$',  tasaVsUSD: null }, // de tasas.usdToArs
+    { code: 'USDT', nombre: 'Tether (USDT)',        simbolo: '₮',  tasaVsUSD: null }, // de tasas.usdtToUsd
+    { code: 'EUR',  nombre: 'Euro (EUR)',            simbolo: '€',  tasaVsUSD: 1.08 },
+    { code: 'BRL',  nombre: 'Real (BRL)',            simbolo: 'R$', tasaVsUSD: 0.19 },
+    { code: 'CLP',  nombre: 'Peso chileno (CLP)',    simbolo: '$',  tasaVsUSD: 0.00106 },
+    { code: 'MXN',  nombre: 'Peso mexicano (MXN)',   simbolo: '$',  tasaVsUSD: 0.058 },
+    { code: 'COP',  nombre: 'Peso colombiano (COP)', simbolo: '$',  tasaVsUSD: 0.00024 },
+    { code: 'UYU',  nombre: 'Peso uruguayo (UYU)',   simbolo: '$',  tasaVsUSD: 0.025 },
+    { code: 'PYG',  nombre: 'Guaraní (PYG)',         simbolo: '₲',  tasaVsUSD: 0.000133 },
+    { code: 'GBP',  nombre: 'Libra esterlina (GBP)', simbolo: '£',  tasaVsUSD: 1.27 },
+  ],
+  // Listas editables — el usuario define las suyas
+  empresas:      ['Mi Empresa', 'Cliente Freelance', 'Otro'],
+  metodosCobro:  ['Transferencia', 'Efectivo USD', 'Efectivo ARS', 'PayPal', 'Stripe', 'Binance', 'Mercado Pago'],
+  tiposPago:     ['Pago Completo', 'Cuota', 'Adelanto', 'Pago Parcial'],
+  categoriasGastos: ['Vivienda', 'Comida', 'Transporte', 'Salud', 'Educación', 'Entretenimiento', 'Ropa', 'Servicios', 'Suscripciones', 'Inversión', 'Otros'],
+  // Fees de plataformas
   fees: [
     { id: 'wise_binance',   origen: 'Wise',       destino: 'Binance (USDT)', tipo: 'ACH Transfer', fee: 0,    nota: 'ACH gratis hasta 1M/mo' },
     { id: 'p2p_binance',    origen: 'P2P Binance', destino: 'Wallet',        tipo: 'P2P',          fee: 0.1,  nota: 'Comisión maker/taker' },
@@ -51,7 +76,7 @@ const CONFIG_DEFAULT = {
     { id: 'wallbit_ars',    origen: 'Wallbit',     destino: 'ARS local',     tipo: 'Conversión',   fee: 2,    nota: 'Spread estimado' },
     { id: 'paypal_out',     origen: 'PayPal',      destino: 'Banco',         tipo: 'Retiro',       fee: 2.5,  nota: 'Fee transferencia' },
     { id: 'stripe_out',     origen: 'Stripe',      destino: 'Banco',         tipo: 'Payout',       fee: 0.25, nota: '0.25% por payout' },
-  ]
+  ],
 };
 
 const loadJSON = (key, fallback) => {
@@ -330,9 +355,20 @@ function App() {
       case 'prioridades':
         return <SistemaPrioridades distribucion={balance.distribucion} {...cp} />;
       case 'nuevoIngreso':
-        return <FormularioIngreso onGuardar={handleGuardarIngreso} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} />;
+        return <FormularioIngreso onGuardar={handleGuardarIngreso} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} config={config} />;
       case 'nuevoGasto':
-        return <FormularioGasto onGuardar={handleGuardarGasto} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} />;
+        return <FormularioGasto onGuardar={handleGuardarGasto} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} config={config} />;
+      case 'configuracion':
+        return (
+          <Configuracion
+            config={config}
+            onConfigChange={newConfig => setConfig(prev => ({ ...prev, ...newConfig }))}
+            displayCurrency={displayCurrency}
+            onDisplayCurrencyChange={c => { setDisplayCurrency(c); setStoredDisplayCurrency(c); }}
+            language={language}
+            onLanguageChange={l => { setLanguage(l); setStoredLanguage(l); }}
+          />
+        );
       case 'historial':
         return <Historial ingresos={ingresos} gastos={gastos} onEliminar={handleEliminar} onEditar={handleEditar} {...cp} />;
       case 'registros':
@@ -378,10 +414,12 @@ function App() {
 
             {/* Controles derechos */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <button onClick={() => setMostrarModalAhorro(true)}
-                className="glass-card px-2.5 py-1.5 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium flex items-center gap-1.5"
-                title="% ahorro sagrado">
-                <Cog6ToothIcon className="w-3.5 h-3.5 text-silver-dark" />
+              <button onClick={() => navigate('configuracion')}
+                className={`glass-card px-2.5 py-1.5 rounded-button border transition-premium flex items-center gap-1.5 ${
+                  vistaActual === 'configuracion' ? 'border-silver/40 bg-silver/10' : 'border-white/[0.06] hover:border-silver/30'
+                }`}
+                title="Configuración">
+                <Cog6ToothIcon className={`w-3.5 h-3.5 ${vistaActual === 'configuracion' ? 'text-silver' : 'text-silver-dark'}`} />
                 <span className="font-mono font-bold text-silver text-xs">{config.porcentajeAhorro}%</span>
               </button>
               <button onClick={handleToggleCurrency}

@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { CATEGORIAS, METODOS_COBRO, MONEDAS } from '../data/constants.js';
 
-const FormularioGasto = ({ onGuardar, onCancelar }) => {
+const FormularioGasto = ({ onGuardar, onCancelar, transaccion, config }) => {
   const hoy = new Date().toISOString().split('T')[0];
+
+  // Usar listas de config si están disponibles, sino fallback a constants
+  const categorias     = config?.categoriasGastos?.length ? config.categoriasGastos : CATEGORIAS;
+  const metodosCobro   = config?.metodosCobro?.length     ? config.metodosCobro     : METODOS_COBRO;
+  const monedasActivas = config?.monedasActivas?.length   ? config.monedasActivas   : MONEDAS;
 
   const [formData, setFormData] = useState({
     fecha:       hoy,
-    categoria:   CATEGORIAS[0],
-    metodoPago:  METODOS_COBRO[0],
-    moneda:      MONEDAS[1],
+    categoria:   categorias[0] || '',
+    metodoPago:  metodosCobro[0] || '',
+    moneda:      monedasActivas.includes('USD') ? 'USD' : monedasActivas[0] || 'USD',
     monto:       '',
     descripcion: ''
   });
+
+  // Si estamos editando, prellenar con datos existentes
+  useEffect(() => {
+    if (transaccion) {
+      setFormData({
+        fecha:       transaccion.fecha       || hoy,
+        categoria:   transaccion.categoria   || categorias[0] || '',
+        metodoPago:  transaccion.metodoPago  || metodosCobro[0] || '',
+        moneda:      transaccion.moneda      || 'USD',
+        monto:       String(transaccion.monto || ''),
+        descripcion: transaccion.descripcion || '',
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [transaccion]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,8 +45,14 @@ const FormularioGasto = ({ onGuardar, onCancelar }) => {
       alert('Por favor ingresa un monto válido');
       return;
     }
-    onGuardar({ id: uuidv4(), ...formData, monto: Number(formData.monto) });
+    onGuardar({
+      id: transaccion?.id || uuidv4(),
+      ...formData,
+      monto: Number(formData.monto)
+    });
   };
+
+  const esEdicion = Boolean(transaccion);
 
   return (
     <div className="min-h-screen bg-dark-bg pb-20 animate-fadeIn">
@@ -34,15 +60,17 @@ const FormularioGasto = ({ onGuardar, onCancelar }) => {
       {/* Header */}
       <div className="glass-card border-b border-white/[0.06] px-6 py-5 mb-6">
         <div className="flex items-center gap-4">
-          <button
-            onClick={onCancelar}
-            className="text-silver-dim hover:text-silver transition-premium text-lg"
-          >
+          <button onClick={onCancelar}
+            className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-silver-dim hover:text-silver hover:border-silver/30 transition-premium">
             ←
           </button>
           <div>
-            <h1 className="font-display text-xl font-semibold text-silver tracking-widest">NUEVO GASTO</h1>
-            <p className="text-dark-textSecondary text-xs mt-0.5">Registra un gasto</p>
+            <h1 className="font-display text-xl font-semibold text-silver tracking-widest">
+              {esEdicion ? 'EDITAR GASTO' : 'NUEVO GASTO'}
+            </h1>
+            <p className="text-dark-textSecondary text-xs mt-0.5">
+              {esEdicion ? 'Modifica los datos del gasto' : 'Registra un gasto en tu flujo'}
+            </p>
           </div>
         </div>
       </div>
@@ -68,7 +96,7 @@ const FormularioGasto = ({ onGuardar, onCancelar }) => {
           <div>
             <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Categoría *</label>
             <select name="categoria" value={formData.categoria} onChange={handleChange} required className="input-premium">
-              {CATEGORIAS.map(c => <option key={c} value={c}>{c}</option>)}
+              {categorias.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
@@ -76,7 +104,7 @@ const FormularioGasto = ({ onGuardar, onCancelar }) => {
           <div>
             <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Método de Pago *</label>
             <select name="metodoPago" value={formData.metodoPago} onChange={handleChange} required className="input-premium">
-              {METODOS_COBRO.map(m => <option key={m} value={m}>{m}</option>)}
+              {metodosCobro.map(m => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
 
@@ -85,7 +113,7 @@ const FormularioGasto = ({ onGuardar, onCancelar }) => {
             <div>
               <label className="block text-xs font-medium text-silver-dark mb-2 uppercase tracking-wider">Moneda *</label>
               <select name="moneda" value={formData.moneda} onChange={handleChange} required className="input-premium">
-                {MONEDAS.map(m => <option key={m} value={m}>{m}</option>)}
+                {monedasActivas.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
             </div>
             <div>
@@ -119,8 +147,9 @@ const FormularioGasto = ({ onGuardar, onCancelar }) => {
 
           {/* Botones */}
           <div className="flex gap-3 pt-2">
-            <button type="submit" className="flex-1 bg-silver-muted text-silver-bright py-3 rounded-button font-semibold hover:bg-silver-deep transition-premium shadow-elevation-1 text-sm tracking-widest">
-              GUARDAR GASTO
+            <button type="submit"
+              className="flex-1 bg-silver-muted text-silver-bright py-3 rounded-button font-semibold hover:bg-silver-deep transition-premium shadow-elevation-1 text-sm tracking-widest">
+              {esEdicion ? 'ACTUALIZAR' : 'GUARDAR GASTO'}
             </button>
             <button
               type="button"

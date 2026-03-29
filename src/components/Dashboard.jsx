@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement } from 'chart.js';
 import { Pie, Bar } from 'react-chartjs-2';
 import { formatearMoneda } from '../utils/calculations.js';
 import { COLORES_EMPRESAS } from '../data/constants.js';
 import { useTranslation } from '../utils/i18n.js';
 import { isExchangeRateOutdated } from '../utils/exchangeRate.js';
+import useCountUp from '../hooks/useCountUp.js';
 import {
   BanknotesIcon, LockClosedIcon, ClockIcon, BriefcaseIcon,
   ChevronRightIcon, PlusCircleIcon, SparklesIcon,
@@ -125,13 +126,18 @@ const Dashboard = ({
     }
   };
 
+  // ── Animaciones numéricas ─────────────────────────────────────────────
+  const animBalance   = useCountUp(Math.abs(balanceNetoInt),  900);
+  const animIngresos  = useCountUp(totalIngresosInt,           750);
+  const animSagrado   = useCountUp(sagradoInt,                 800);
+
   return (
     <div className="space-y-4 animate-fadeIn">
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between pt-1 px-1">
+      <div className="card-enter flex items-center justify-between pt-1 px-1">
         <div>
-          <h1 className="font-display text-2xl font-bold text-gradient-silver tracking-widest leading-none">DENARIUM</h1>
+          <h1 className="font-display text-2xl font-bold text-gradient-silver tracking-widest leading-none number-glow">DENARIUM</h1>
           <p className="text-dark-textSecondary text-xs mt-0.5">{t('dashboard.subtitle')}</p>
         </div>
         <div className="text-right">
@@ -147,7 +153,7 @@ const Dashboard = ({
       {/* ── PATRIMONIO EN CUENTAS ── */}
       {cuentas.length > 0 ? (
         <button onClick={()=>onNavigate('cuentas')}
-          className="w-full text-left glass-card rounded-premium border border-silver/10 shadow-glow-silver overflow-hidden hover:border-silver/25 transition-premium group">
+          className="card-enter-1 w-full text-left glass-card rounded-premium border border-silver/10 shadow-glow-silver overflow-hidden hover:border-silver/25 transition-premium group card-shimmer border-animated">
           <div className="px-4 pt-3 pb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BanknotesIcon className="w-4 h-4 text-silver-dim"/>
@@ -225,7 +231,7 @@ const Dashboard = ({
       {/* ── NEGOCIOS ── */}
       {negActivos.length > 0 ? (
         <button onClick={()=>onNavigate('negocios')}
-          className="w-full text-left glass-card rounded-premium border border-white/[0.06] overflow-hidden hover:border-silver/15 transition-premium group">
+          className="card-enter-2 w-full text-left glass-card rounded-premium border border-white/[0.06] overflow-hidden hover:border-silver/15 transition-premium group card-shimmer">
           <div className="px-4 pt-3 pb-2 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BriefcaseIcon className="w-4 h-4 text-silver-dim"/>
@@ -283,22 +289,24 @@ const Dashboard = ({
 
         <div className="grid grid-cols-2 gap-3">
           <StatCard label="TOTAL INGRESOS" value={formatearMoneda(totalIngresosInt,displayCurrency,rate)} accent="silver"
+            stagger="card-enter-3"
             sub={ingNegocios>0?`Tx: ${formatearMoneda(ingTx,displayCurrency,rate)} · Neg: ${formatearMoneda(ingNegocios,displayCurrency,rate)}`:null}/>
-          <StatCard label="TOTAL GASTOS"   value={formatearMoneda(totalGastosInt,displayCurrency,rate)} accent="dim"/>
+          <StatCard label="TOTAL GASTOS"   value={formatearMoneda(totalGastosInt,displayCurrency,rate)} accent="dim" stagger="card-enter-3"/>
         </div>
 
-        <StatCard label="BALANCE NETO" value={formatearMoneda(balanceNetoInt,displayCurrency,rate)}
-          accent={balanceNetoInt>=0?'bright':'dim'} large/>
+        <StatCard label="BALANCE NETO"
+          value={(balanceNetoInt<0?'-':'')+formatearMoneda(Math.abs(balanceNetoInt),displayCurrency,rate)}
+          accent={balanceNetoInt>=0?'positive':'negative'} large stagger="card-enter-4"/>
 
         {/* Sagrado % */}
-        <div className="glass-card rounded-premium p-4 shadow-glow-silver border border-silver/15 relative overflow-hidden">
+        <div className="card-enter-5 glass-card rounded-premium p-4 shadow-glow-silver border border-silver/15 relative overflow-hidden card-shimmer">
           <div className="absolute inset-0 bg-gradient-silver opacity-[0.03] pointer-events-none"/>
           <div className="relative z-10 flex items-center justify-between">
             <div>
               <div className="text-[10px] text-silver-dark mb-1 flex items-center gap-1.5 uppercase tracking-widest">
                 <SparklesIcon className="w-3 h-3"/> {t('dashboard.sacred40')}
               </div>
-              <div className="text-3xl font-bold text-gradient-silver font-mono">
+              <div className="text-3xl font-bold number-silver font-mono number-glow">
                 {formatearMoneda(sagradoInt,displayCurrency,rate)}
               </div>
               <div className="text-[10px] text-dark-textSecondary mt-1">
@@ -306,7 +314,7 @@ const Dashboard = ({
               </div>
             </div>
             <div className="text-center">
-              <div className="text-5xl font-bold text-gradient-silver shimmer font-display leading-none">{pctAhorro}%</div>
+              <div className="text-5xl font-bold number-silver shimmer font-display leading-none">{pctAhorro}%</div>
               <div className="text-[9px] text-silver-dim mt-1 tracking-widest">{t('dashboard.sacred40Subtitle')}</div>
             </div>
           </div>
@@ -372,12 +380,24 @@ const Dashboard = ({
   );
 };
 
-const StatCard = ({ label, value, accent='silver', large=false, sub=null }) => {
-  const cls = { silver:'text-gradient-silver', bright:'text-silver-bright', dim:'text-silver-dim' };
+const StatCard = ({ label, value, accent='silver', large=false, sub=null, stagger='' }) => {
+  const cls = {
+    silver:   'number-silver',
+    bright:   'text-silver-bright',
+    dim:      'text-silver-dim',
+    positive: 'value-positive',
+    negative: 'value-negative',
+  };
+  const borderCls = {
+    positive: 'border-emerald-500/20',
+    negative: 'border-red-500/20',
+    silver:   'border-white/[0.06]',
+    default:  'border-white/[0.06]',
+  };
   return (
-    <div className="glass-card rounded-premium p-4 border border-white/[0.06]">
+    <div className={`glass-card rounded-premium p-4 border card-shimmer transition-premium hover:border-silver/20 ${borderCls[accent]||borderCls.default} ${stagger}`}>
       <div className="text-[10px] text-dark-textSecondary mb-1.5 uppercase tracking-wider">{label}</div>
-      <div className={`font-bold font-mono ${large?'text-3xl':'text-xl'} ${cls[accent]||'text-silver'}`}>{value}</div>
+      <div className={`font-bold font-mono ${large?'text-3xl':'text-xl'} ${cls[accent]||'text-silver'} ${large?'number-glow':''}`}>{value}</div>
       {sub && <div className="text-[9px] text-silver-dim/60 mt-1">{sub}</div>}
     </div>
   );
