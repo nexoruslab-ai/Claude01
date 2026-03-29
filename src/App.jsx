@@ -7,6 +7,7 @@ import Historial from './components/Historial.jsx';
 import Cuentas from './components/Cuentas.jsx';
 import Negocios from './components/Negocios.jsx';
 import Proyectos from './components/Proyectos.jsx';
+import Registros from './components/Registros.jsx';
 import Toast from './components/Toast.jsx';
 import { calcularBalanceGeneral } from './utils/calculations.js';
 import { getStoredLanguage, setStoredLanguage } from './utils/i18n.js';
@@ -163,8 +164,8 @@ const NAV_ITEMS = [
     fabAccion: 'nueva',
   },
   {
-    id: 'historial',
-    label: 'Historial',
+    id: 'registros',
+    label: 'Registros',
     iconOutline: <ClockOutline className="w-5 h-5" />,
     iconSolid:   <ClockSolid   className="w-5 h-5" />,
     fabLabel: 'TRANSACCIÓN',
@@ -334,6 +335,14 @@ function App() {
         return <FormularioGasto onGuardar={handleGuardarGasto} onCancelar={handleCancelar} language={language} transaccion={transaccionEditar} />;
       case 'historial':
         return <Historial ingresos={ingresos} gastos={gastos} onEliminar={handleEliminar} onEditar={handleEditar} {...cp} />;
+      case 'registros':
+        return (
+          <Registros
+            ingresos={ingresos} gastos={gastos} negocios={negocios}
+            config={config} onEliminar={handleEliminar} onEditar={handleEditar}
+            {...cp}
+          />
+        );
       case 'cuentas':
         return <Cuentas config={config} onConfigChange={setConfig} cuentas={cuentas} onCuentasChange={setCuentas} addNewSignal={addNewSignal} />;
       case 'negocios':
