@@ -162,14 +162,17 @@ export default function Cuentas({ config, onConfigChange, cuentas, onCuentasChan
 
   // Agregar retención
   const agregarRetencion = (cuentaId) => {
-    if (!nuevaRet.monto || !nuevaRet.fechaLiberacion) return;
+    const montoNum = parseFloat(nuevaRet.monto);
+    if (!montoNum || montoNum <= 0) return; // solo bloquear si no hay monto válido
     const cuenta = lista.find(c => c.id === cuentaId);
+    // Si la fecha de liberación no fue editada, recalcular desde fechaIngreso
+    const fechaLib = nuevaRet.fechaLiberacion || autoFechaLib(cuentaId, nuevaRet.fechaIngreso);
     const nueva = {
       id: 'ret_' + Date.now(),
-      monto: parseFloat(nuevaRet.monto) || 0,
+      monto: montoNum,
       concepto: nuevaRet.concepto || 'Sin concepto',
-      fechaIngreso: nuevaRet.fechaIngreso,
-      fechaLiberacion: nuevaRet.fechaLiberacion,
+      fechaIngreso: nuevaRet.fechaIngreso || hoy(),
+      fechaLiberacion: fechaLib,
       liberado: false,
     };
     updateCuenta(cuentaId, { retenciones: [...(cuenta.retenciones || []), nueva] });
@@ -189,11 +192,12 @@ export default function Cuentas({ config, onConfigChange, cuentas, onCuentasChan
     updateCuenta(cuentaId, { retenciones: cuenta.retenciones.filter(r => r.id !== retId) });
   };
 
-  // Calcular fecha de liberación automática según diasRetencion
+  // Calcular fecha de liberación: fechaIngreso + diasRetencion
+  // Si diasRetencion === 0, disponible el mismo día → devuelve fechaIngreso
   const autoFechaLib = (cuentaId, fechaIngreso) => {
     const cuenta = lista.find(c => c.id === cuentaId);
-    if (!cuenta || !cuenta.diasRetencion) return '';
-    return addDias(fechaIngreso, cuenta.diasRetencion);
+    if (!cuenta) return fechaIngreso || hoy();
+    return addDias(fechaIngreso || hoy(), cuenta.diasRetencion || 0);
   };
 
   // ── Tasas y fees ───────────────────────────────────────────────────────
@@ -536,40 +540,53 @@ export default function Cuentas({ config, onConfigChange, cuentas, onCuentasChan
                               <div className="grid grid-cols-2 gap-2">
                                 <div className="relative">
                                   <input type="number" placeholder="Monto retenido" value={nuevaRet.monto}
-                                    onChange={e => {
-                                      const v = e.target.value;
-                                      const lib = cuenta.diasRetencion > 0 && nuevaRet.fechaIngreso
-                                        ? autoFechaLib(cuenta.id, nuevaRet.fechaIngreso) : nuevaRet.fechaLiberacion;
-                                      setNuevaRet(p => ({ ...p, monto: v, fechaLiberacion: lib }));
-                                    }}
-                                    className="input-premium text-sm w-full pr-10" />
+                                    onChange={e => setNuevaRet(p => ({ ...p, monto: e.target.value }))}
+                                    className="input-premium text-sm w-full pr-10"
+                                    autoFocus />
                                   <span className="absolute right-3 top-1/2 -translate-y-1/2 text-silver-dim text-[10px]">{cuenta.moneda}</span>
                                 </div>
                                 <input placeholder="Concepto (ej: Venta X)" value={nuevaRet.concepto}
                                   onChange={e => setNuevaRet(p => ({ ...p, concepto: e.target.value }))}
                                   className="input-premium text-sm" />
                                 <div>
-                                  <div className="text-[9px] text-silver-dim mb-1">Fecha ingreso</div>
+                                  <div className="text-[9px] text-silver-dim mb-1">Fecha que ingresó</div>
                                   <input type="date" value={nuevaRet.fechaIngreso}
                                     onChange={e => {
                                       const fi = e.target.value;
-                                      const lib = cuenta.diasRetencion > 0 ? autoFechaLib(cuenta.id, fi) : nuevaRet.fechaLiberacion;
-                                      setNuevaRet(p => ({ ...p, fechaIngreso: fi, fechaLiberacion: lib }));
+                                      // Siempre recalcular fecha liberación desde fecha ingreso
+                                      setNuevaRet(p => ({
+                                        ...p,
+                                        fechaIngreso: fi,
+                                        fechaLiberacion: autoFechaLib(cuenta.id, fi),
+                                      }));
                                     }}
                                     className="input-premium text-sm w-full" />
                                 </div>
                                 <div>
-                                  <div className="text-[9px] text-silver-dim mb-1">
+                                  <div className="text-[9px] text-silver-dim mb-1 flex items-center gap-1">
                                     Fecha liberación
-                                    {cuenta.diasRetencion > 0 && (
-                                      <span className="text-silver-dim/50 ml-1">(auto: {cuenta.diasRetencion}d)</span>
-                                    )}
+                                    <span className="text-silver-dim/50">
+                                      {cuenta.diasRetencion > 0
+                                        ? `(+${cuenta.diasRetencion}d — editable)`
+                                        : '(mismo día — editable)'}
+                                    </span>
                                   </div>
                                   <input type="date" value={nuevaRet.fechaLiberacion}
                                     onChange={e => setNuevaRet(p => ({ ...p, fechaLiberacion: e.target.value }))}
                                     className="input-premium text-sm w-full" />
                                 </div>
                               </div>
+                              {/* Preview días restantes */}
+                              {nuevaRet.fechaLiberacion && (
+                                <div className="text-[10px] text-silver-dim bg-white/[0.03] rounded px-3 py-1.5">
+                                  {(() => {
+                                    const d = diasHasta(nuevaRet.fechaLiberacion);
+                                    if (d <= 0) return '✓ Disponible hoy o ya liberado';
+                                    if (d === 1) return '⏱ Libera mañana';
+                                    return `⏱ Libera en ${d} días (${fmtFecha(nuevaRet.fechaLiberacion)})`;
+                                  })()}
+                                </div>
+                              )}
                               <div className="flex gap-2">
                                 <button onClick={() => agregarRetencion(cuenta.id)}
                                   className="btn-premium flex-1 py-2 text-xs tracking-widest">
