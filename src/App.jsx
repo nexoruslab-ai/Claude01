@@ -9,6 +9,7 @@ import Negocios from './components/Negocios.jsx';
 import Proyectos from './components/Proyectos.jsx';
 import Registros from './components/Registros.jsx';
 import Configuracion from './components/Configuracion.jsx';
+import TutorialOverlay from './components/TutorialOverlay.jsx';
 import Toast from './components/Toast.jsx';
 import { calcularBalanceGeneral } from './utils/calculations.js';
 import { getStoredLanguage, setStoredLanguage } from './utils/i18n.js';
@@ -221,6 +222,10 @@ function App() {
   const [exchangeRate,    setExchangeRate]    = useState(null);
   const [toast,           setToast]           = useState(null);
 
+  // ── Tutorial ──────────────────────────────────────────────────────────
+  const [tutorialActivo, setTutorialActivo] = useState(false);
+  const [tutorialStep,   setTutorialStep]   = useState(0);
+
   // ── Cargar todo al inicio ─────────────────────────────────────────────
   useEffect(() => {
     initializeTheme();
@@ -414,6 +419,19 @@ function App() {
 
             {/* Controles derechos */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
+              {/* Tutorial button — purple */}
+              <button
+                onClick={() => { setTutorialStep(0); setTutorialActivo(true); }}
+                className="tutorial-btn-ring relative flex items-center justify-center w-7 h-7 rounded-full transition-all duration-200 hover:brightness-110 hover:scale-105 active:scale-95"
+                style={{
+                  background: 'linear-gradient(135deg, #7c3aed, #9333ea)',
+                  boxShadow: '0 0 12px rgba(139,92,246,0.45)',
+                }}
+                title="Tutorial"
+              >
+                <span className="text-[13px] tutorial-float select-none">✦</span>
+              </button>
+
               <button onClick={() => navigate('configuracion')}
                 className={`glass-card px-2.5 py-1.5 rounded-button border transition-premium flex items-center gap-1.5 ${
                   vistaActual === 'configuracion' ? 'border-silver/40 bg-silver/10' : 'border-white/[0.06] hover:border-silver/30'
@@ -491,6 +509,17 @@ function App() {
           porcentaje={config.porcentajeAhorro}
           onGuardar={handleGuardarAhorro}
           onCerrar={() => setMostrarModalAhorro(false)}
+        />
+      )}
+
+      {/* ── Tutorial Overlay ── */}
+      {tutorialActivo && (
+        <TutorialOverlay
+          step={tutorialStep}
+          onNext={()     => setTutorialStep(s => Math.min(s + 1, 7))}
+          onPrev={()     => setTutorialStep(s => Math.max(s - 1, 0))}
+          onClose={()    => setTutorialActivo(false)}
+          onNavigate={navigate}
         />
       )}
 
