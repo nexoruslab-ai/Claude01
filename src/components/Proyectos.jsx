@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PlusIcon, TrashIcon, PencilIcon, CheckIcon, XMarkIcon,
   ChevronDownIcon, ChevronUpIcon, ArrowTopRightOnSquareIcon,
@@ -10,7 +10,12 @@ const MONEDAS = ['USD', 'ARS', 'USDT'];
 const PROYECTO_VACIO  = { nombre: '', descripcion: '', presupuesto: '', monedaPresupuesto: 'USD' };
 const ITEM_VACIO      = { nombre: '', url: '', precio: '', moneda: 'USD', notas: '', comprado: false };
 
-export default function Proyectos({ proyectos, onProyectosChange, tasas = { usdToArs: 1453.73, usdtToUsd: 0.999 } }) {
+export default function Proyectos({ proyectos, onProyectosChange, tasas = { usdToArs: 1453.73, usdtToUsd: 0.999 }, addNewSignal = 0 }) {
+  // FAB signal → abrir formulario nuevo proyecto
+  useEffect(() => {
+    if (addNewSignal > 0) { setMostrarNuevoP(true); setTimeout(() => window.scrollTo({ top: 99999, behavior: 'smooth' }), 100); }
+  }, [addNewSignal]);
+
   const [expandido, setExpandido]         = useState(null);
   const [editandoProyecto, setEditandoP]  = useState(null);
   const [editPTemp, setEditPTemp]         = useState({});

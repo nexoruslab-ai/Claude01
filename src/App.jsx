@@ -10,14 +10,26 @@ import Proyectos from './components/Proyectos.jsx';
 import Toast from './components/Toast.jsx';
 import { calcularBalanceGeneral } from './utils/calculations.js';
 import { getStoredLanguage, setStoredLanguage } from './utils/i18n.js';
-import { initializeTheme, toggleTheme as toggleThemeUtil, setStoredTheme, applyTheme } from './utils/theme.js';
+import { initializeTheme } from './utils/theme.js';
 import { getStoredDisplayCurrency, setStoredDisplayCurrency } from './utils/currency.js';
 import { getCurrentExchangeRate, processTransactionWithCurrency } from './utils/exchangeRate.js';
 import { LanguageIcon } from '@heroicons/react/24/solid';
 import {
-  ChartBarIcon, PlusIcon,
-  BanknotesIcon, BriefcaseIcon, FolderOpenIcon, Cog6ToothIcon
+  ChartBarIcon      as ChartBarOutline,
+  BanknotesIcon     as BanknotesOutline,
+  BriefcaseIcon     as BriefcaseOutline,
+  FolderOpenIcon    as FolderOutline,
+  ClockIcon         as ClockOutline,
+  PlusIcon, Cog6ToothIcon, XMarkIcon,
+  ArrowUpIcon, ArrowDownIcon,
 } from '@heroicons/react/24/outline';
+import {
+  ChartBarIcon      as ChartBarSolid,
+  BanknotesIcon     as BanknotesSolid,
+  BriefcaseIcon     as BriefcaseSolid,
+  FolderOpenIcon    as FolderSolid,
+  ClockIcon         as ClockSolid,
+} from '@heroicons/react/24/solid';
 
 // ── Storage keys ──────────────────────────────────────────────────────────
 const SK_INGRESOS  = 'denarium_ingresos';
@@ -49,13 +61,43 @@ const saveJSON = (key, value) => {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
 };
 
+// ── Modal: selección tipo transacción ─────────────────────────────────────
+function ModalTipoTransaccion({ onIngreso, onGasto, onCerrar }) {
+  return (
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-end justify-center z-50 animate-fadeIn"
+      onClick={onCerrar}>
+      <div className="glass-card rounded-t-premium shadow-elevation-3 p-5 w-full max-w-lg border-t border-x border-silver/10 animate-slideUp"
+        onClick={e => e.stopPropagation()}>
+        <div className="w-10 h-1 bg-white/10 rounded-full mx-auto mb-5" />
+        <p className="text-[10px] text-silver-dim tracking-widest text-center mb-4 font-display">¿QUÉ DESEAS REGISTRAR?</p>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <button onClick={onIngreso}
+            className="flex flex-col items-center gap-2 py-5 rounded-button border border-silver/20 bg-silver/5 hover:bg-silver/10 transition-premium">
+            <ArrowUpIcon className="w-6 h-6 text-silver-bright" />
+            <span className="text-sm font-semibold text-silver tracking-widest">INGRESO</span>
+          </button>
+          <button onClick={onGasto}
+            className="flex flex-col items-center gap-2 py-5 rounded-button border border-white/10 bg-white/[0.03] hover:bg-white/[0.06] transition-premium">
+            <ArrowDownIcon className="w-6 h-6 text-silver-dim" />
+            <span className="text-sm font-semibold text-silver-dim tracking-widest">GASTO</span>
+          </button>
+        </div>
+        <button onClick={onCerrar}
+          className="w-full py-3 text-xs text-silver-dim border border-white/[0.06] rounded-button hover:border-white/20 transition-premium tracking-widest">
+          CANCELAR
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Modal: editar % ahorro sagrado ────────────────────────────────────────
 function ModalAhorro({ porcentaje, onGuardar, onCerrar }) {
   const [val, setVal] = useState(String(porcentaje));
   const n = parseFloat(val) || 0;
   const valido = n >= 0 && n <= 100;
   return (
-    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/75 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fadeIn">
       <div className="glass-card rounded-premium shadow-elevation-3 p-6 max-w-xs w-full border border-silver/10 animate-slideUp">
         <h2 className="font-display text-lg font-semibold mb-1 text-silver tracking-widest">% AHORRO SAGRADO</h2>
         <p className="text-dark-textSecondary text-xs mb-4">
@@ -86,33 +128,79 @@ function ModalAhorro({ porcentaje, onGuardar, onCerrar }) {
   );
 }
 
+// ── Configuración de secciones de navegación ──────────────────────────────
+const NAV_ITEMS = [
+  {
+    id: 'dashboard',
+    label: 'Inicio',
+    iconOutline: <ChartBarOutline className="w-5 h-5" />,
+    iconSolid:   <ChartBarSolid   className="w-5 h-5" />,
+    fabLabel: 'TRANSACCIÓN',
+    fabAccion: 'transaccion',
+  },
+  {
+    id: 'cuentas',
+    label: 'Cuentas',
+    iconOutline: <BanknotesOutline className="w-5 h-5" />,
+    iconSolid:   <BanknotesSolid   className="w-5 h-5" />,
+    fabLabel: 'CUENTA',
+    fabAccion: 'nueva',
+  },
+  {
+    id: 'negocios',
+    label: 'Negocios',
+    iconOutline: <BriefcaseOutline className="w-5 h-5" />,
+    iconSolid:   <BriefcaseSolid   className="w-5 h-5" />,
+    fabLabel: 'NEGOCIO',
+    fabAccion: 'nueva',
+  },
+  {
+    id: 'proyectos',
+    label: 'Proyectos',
+    iconOutline: <FolderOutline className="w-5 h-5" />,
+    iconSolid:   <FolderSolid   className="w-5 h-5" />,
+    fabLabel: 'PROYECTO',
+    fabAccion: 'nueva',
+  },
+  {
+    id: 'historial',
+    label: 'Historial',
+    iconOutline: <ClockOutline className="w-5 h-5" />,
+    iconSolid:   <ClockSolid   className="w-5 h-5" />,
+    fabLabel: 'TRANSACCIÓN',
+    fabAccion: 'transaccion',
+  },
+];
+
 // ── App principal ─────────────────────────────────────────────────────────
 function App() {
-  const [ingresos, setIngresos]   = useState([]);
-  const [gastos, setGastos]       = useState([]);
-  const [config, setConfig]       = useState(CONFIG_DEFAULT);
-  const [cuentas, setCuentas]     = useState([]);
-  const [negocios, setNegocios]   = useState([]);
-  const [proyectos, setProyectos] = useState([]);
+  const [ingresos,   setIngresos]   = useState([]);
+  const [gastos,     setGastos]     = useState([]);
+  const [config,     setConfig]     = useState(CONFIG_DEFAULT);
+  const [cuentas,    setCuentas]    = useState([]);
+  const [negocios,   setNegocios]   = useState([]);
+  const [proyectos,  setProyectos]  = useState([]);
 
-  const [vistaActual, setVistaActual]               = useState('dashboard');
-  const [mostrarModalTipo, setMostrarModalTipo]     = useState(false);
-  const [mostrarModalAhorro, setMostrarModalAhorro] = useState(false);
-  const [transaccionEditar, setTransaccionEditar]   = useState(null);
-  const [language, setLanguage]         = useState('es');
-  const [theme, setTheme]               = useState('dark');
+  const [vistaActual, setVistaActual]              = useState('dashboard');
+  const [prevVista,   setPrevVista]                = useState(null);
+  const [mostrarModalTipo,   setMostrarModalTipo]  = useState(false);
+  const [mostrarModalAhorro, setMostrarModalAhorro]= useState(false);
+  const [transaccionEditar,  setTransaccionEditar] = useState(null);
+
+  // Signal para que secciones abran su formulario "nuevo" via FAB
+  const [addNewSignal, setAddNewSignal] = useState(0);
+
+  const [language,        setLanguage]        = useState('es');
   const [displayCurrency, setDisplayCurrency] = useState('USD');
-  const [exchangeRate, setExchangeRate] = useState(null);
-  const [toast, setToast]               = useState(null);
+  const [exchangeRate,    setExchangeRate]    = useState(null);
+  const [toast,           setToast]           = useState(null);
 
   // ── Cargar todo al inicio ─────────────────────────────────────────────
   useEffect(() => {
-    const savedTheme = initializeTheme();
-    setTheme(savedTheme);
+    initializeTheme();
     setLanguage(getStoredLanguage());
     setDisplayCurrency(getStoredDisplayCurrency());
     fetchExchangeRate();
-
     setIngresos(loadJSON(SK_INGRESOS, []));
     setGastos(loadJSON(SK_GASTOS, []));
     setConfig(prev => ({ ...CONFIG_DEFAULT, ...loadJSON(SK_CONFIG, {}) }));
@@ -134,8 +222,25 @@ function App() {
     catch { showToast('Error al obtener tipo de cambio', 'error'); }
   };
 
-  // Balance usa % configurable
   const balance = calcularBalanceGeneral(ingresos, gastos, config.porcentajeAhorro);
+
+  // ── Navegación ────────────────────────────────────────────────────────
+  const navigate = (vista) => {
+    setPrevVista(vistaActual);
+    setVistaActual(vista);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // ── FAB contextual ────────────────────────────────────────────────────
+  const handleFAB = () => {
+    const seccion = NAV_ITEMS.find(n => n.id === vistaActual);
+    if (!seccion || seccion.fabAccion === 'transaccion') {
+      setMostrarModalTipo(true);
+    } else {
+      // Signal a la sección activa para abrir su formulario "nuevo"
+      setAddNewSignal(s => s + 1);
+    }
+  };
 
   // ── Handlers transacciones ────────────────────────────────────────────
   const handleGuardarIngreso = (nuevoIngreso) => {
@@ -143,13 +248,13 @@ function App() {
     const ing = processTransactionWithCurrency(nuevoIngreso, exchangeRate);
     if (transaccionEditar) {
       setIngresos(prev => prev.map(i => i.id === transaccionEditar.id ? ing : i));
-      showToast('Ingreso actualizado exitosamente');
+      showToast('Ingreso actualizado');
       setTransaccionEditar(null);
     } else {
       setIngresos(prev => [...prev, ing]);
-      showToast('Ingreso guardado exitosamente');
+      showToast('Ingreso registrado ✓');
     }
-    setVistaActual('dashboard');
+    navigate('dashboard');
     setMostrarModalTipo(false);
   };
 
@@ -158,13 +263,13 @@ function App() {
     const g = processTransactionWithCurrency(nuevoGasto, exchangeRate);
     if (transaccionEditar) {
       setGastos(prev => prev.map(x => x.id === transaccionEditar.id ? g : x));
-      showToast('Gasto actualizado exitosamente');
+      showToast('Gasto actualizado');
       setTransaccionEditar(null);
     } else {
       setGastos(prev => [...prev, g]);
-      showToast('Gasto guardado exitosamente');
+      showToast('Gasto registrado ✓');
     }
-    setVistaActual('dashboard');
+    navigate('dashboard');
     setMostrarModalTipo(false);
   };
 
@@ -176,44 +281,51 @@ function App() {
 
   const handleEditar = (transaccion, tipo) => {
     setTransaccionEditar(transaccion);
-    setVistaActual(tipo === 'ingreso' ? 'nuevoIngreso' : 'nuevoGasto');
+    navigate(tipo === 'ingreso' ? 'nuevoIngreso' : 'nuevoGasto');
   };
 
   const handleCancelar = () => {
-    setVistaActual('dashboard');
-    setMostrarModalTipo(false);
+    navigate(prevVista || 'dashboard');
     setTransaccionEditar(null);
-  };
-
-  const handleNuevaTransaccion = (tipo) => {
-    setTransaccionEditar(null);
-    if (tipo === 'ingreso')    setVistaActual('nuevoIngreso');
-    else if (tipo === 'gasto') setVistaActual('nuevoGasto');
-    else                       setMostrarModalTipo(true);
   };
 
   const handleToggleLang = () => {
     const l = language === 'es' ? 'en' : 'es';
     setLanguage(l); setStoredLanguage(l);
   };
+
   const handleToggleCurrency = () => {
     const c = displayCurrency === 'USD' ? 'ARS' : 'USD';
     setDisplayCurrency(c); setStoredDisplayCurrency(c);
   };
+
   const handleGuardarAhorro = (pct) => {
     setConfig(prev => ({ ...prev, porcentajeAhorro: pct }));
     setMostrarModalAhorro(false);
-    showToast(`Ahorro sagrado actualizado: ${pct}%`);
+    showToast(`Ahorro sagrado: ${pct}%`);
   };
 
   const showToast = (message, type = 'success') => setToast({ message, type });
 
-  // ── Render ────────────────────────────────────────────────────────────
+  // ── Render principal ──────────────────────────────────────────────────
+  const enFormulario = ['nuevoIngreso', 'nuevoGasto'].includes(vistaActual);
+  const cp = { language, displayCurrency, exchangeRate };
+  const navActivo = NAV_ITEMS.find(n => n.id === vistaActual);
+
   const renderVista = () => {
-    const cp = { language, displayCurrency, exchangeRate };
     switch (vistaActual) {
       case 'dashboard':
-        return <Dashboard balance={balance} onNuevaTransaccion={handleNuevaTransaccion} {...cp} />;
+        return (
+          <Dashboard
+            balance={balance}
+            onNuevaTransaccion={() => setMostrarModalTipo(true)}
+            onNavigate={navigate}
+            cuentas={cuentas}
+            config={config}
+            negocios={negocios}
+            {...cp}
+          />
+        );
       case 'prioridades':
         return <SistemaPrioridades distribucion={balance.distribucion} {...cp} />;
       case 'nuevoIngreso':
@@ -223,21 +335,14 @@ function App() {
       case 'historial':
         return <Historial ingresos={ingresos} gastos={gastos} onEliminar={handleEliminar} onEditar={handleEditar} {...cp} />;
       case 'cuentas':
-        return <Cuentas config={config} onConfigChange={setConfig} cuentas={cuentas} onCuentasChange={setCuentas} />;
+        return <Cuentas config={config} onConfigChange={setConfig} cuentas={cuentas} onCuentasChange={setCuentas} addNewSignal={addNewSignal} />;
       case 'negocios':
-        return <Negocios negocios={negocios} onNegociosChange={setNegocios} />;
+        return <Negocios negocios={negocios} onNegociosChange={setNegocios} addNewSignal={addNewSignal} />;
       case 'proyectos':
-        return <Proyectos proyectos={proyectos} onProyectosChange={setProyectos} tasas={config.tasas} />;
+        return <Proyectos proyectos={proyectos} onProyectosChange={setProyectos} tasas={config.tasas} addNewSignal={addNewSignal} />;
       default:
-        return <Dashboard balance={balance} onNuevaTransaccion={handleNuevaTransaccion} {...cp} />;
+        return <Dashboard balance={balance} onNuevaTransaccion={() => setMostrarModalTipo(true)} onNavigate={navigate} cuentas={cuentas} config={config} negocios={negocios} {...cp} />;
     }
-  };
-
-  const enFormulario = ['nuevoIngreso', 'nuevoGasto'].includes(vistaActual);
-
-  const TITULOS = {
-    dashboard: null, prioridades: 'PRIORIDADES', historial: 'HISTORIAL',
-    cuentas: 'CUENTAS', negocios: 'NEGOCIOS', proyectos: 'PROYECTOS',
   };
 
   return (
@@ -245,30 +350,33 @@ function App() {
 
       {/* ── Header ── */}
       {!enFormulario && (
-        <div className="fixed top-0 left-0 right-0 z-30 glass-card border-b border-white/[0.06] backdrop-blur-glass">
-          <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="font-display text-silver text-sm tracking-[0.2em] select-none">DENARIUM</span>
-              {TITULOS[vistaActual] && (
+        <div className="fixed top-0 left-0 right-0 z-30 bg-dark-bg/80 backdrop-blur-glass border-b border-white/[0.05]">
+          <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+
+            {/* Logo + breadcrumb */}
+            <div className="flex items-center gap-2 min-w-0">
+              <button onClick={() => navigate('dashboard')}
+                className="font-display text-silver text-sm tracking-[0.2em] select-none hover:text-silver-bright transition-colors flex-shrink-0">
+                DENARIUM
+              </button>
+              {vistaActual !== 'dashboard' && navActivo && (
                 <>
-                  <span className="text-silver-dim/30 text-xs">·</span>
-                  <span className="text-[10px] text-silver-dim tracking-widest">{TITULOS[vistaActual]}</span>
+                  <span className="text-silver-dim/30 text-xs flex-shrink-0">›</span>
+                  <span className="text-[10px] text-silver-dim tracking-widest truncate">{navActivo.label.toUpperCase()}</span>
                 </>
               )}
             </div>
 
-            <div className="flex items-center gap-1.5">
-              {/* Botón % ahorro — visible en dashboard y prioridades */}
-              {(vistaActual === 'dashboard' || vistaActual === 'prioridades') && (
-                <button onClick={() => setMostrarModalAhorro(true)}
-                  className="glass-card px-2.5 py-1.5 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium flex items-center gap-1.5"
-                  title="Cambiar % ahorro sagrado">
-                  <Cog6ToothIcon className="w-3.5 h-3.5 text-silver-dark" />
-                  <span className="font-mono font-bold text-silver text-xs">{config.porcentajeAhorro}%</span>
-                </button>
-              )}
+            {/* Controles derechos */}
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <button onClick={() => setMostrarModalAhorro(true)}
+                className="glass-card px-2.5 py-1.5 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium flex items-center gap-1.5"
+                title="% ahorro sagrado">
+                <Cog6ToothIcon className="w-3.5 h-3.5 text-silver-dark" />
+                <span className="font-mono font-bold text-silver text-xs">{config.porcentajeAhorro}%</span>
+              </button>
               <button onClick={handleToggleCurrency}
-                className="glass-card px-3 py-1.5 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium">
+                className="glass-card px-2.5 py-1.5 rounded-button border border-white/[0.06] hover:border-silver/30 transition-premium">
                 <span className="font-mono font-semibold text-silver text-xs">{displayCurrency}</span>
               </button>
               <button onClick={handleToggleLang}
@@ -281,69 +389,56 @@ function App() {
         </div>
       )}
 
-      {/* ── Contenido ── */}
-      <div className={`max-w-7xl mx-auto p-4 ${!enFormulario ? 'pt-20' : ''}`}>
-        {renderVista()}
+      {/* ── Contenido principal (con fade al cambiar sección) ── */}
+      <div className={`max-w-lg mx-auto px-4 ${!enFormulario ? 'pt-20 pb-24' : 'pt-4 pb-8'}`}>
+        <div key={vistaActual} className="animate-fadeIn">
+          {renderVista()}
+        </div>
       </div>
 
-      {/* ── Barra navegación inferior ── */}
+      {/* ── Navegación inferior ── */}
       {!enFormulario && (
-        <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-white/[0.06] shadow-elevation-3 z-30 backdrop-blur-glass">
-          <div className="max-w-7xl mx-auto px-1">
+        <nav className="fixed bottom-0 left-0 right-0 z-30 bg-dark-bg/90 backdrop-blur-glass border-t border-white/[0.06]">
+          <div className="max-w-lg mx-auto px-2">
+            <div className="flex items-end h-[60px]">
 
-            {/* Fila superior — Prioridades & Historial */}
-            <div className="flex border-b border-white/[0.04]">
-              <NavSmall label="Prioridades" active={vistaActual === 'prioridades'} onClick={() => setVistaActual('prioridades')} />
-              <NavSmall label="Historial"   active={vistaActual === 'historial'}   onClick={() => setVistaActual('historial')} />
-            </div>
+              {/* Items izquierdos */}
+              {NAV_ITEMS.slice(0, 2).map(item => (
+                <NavItem key={item.id} item={item} active={vistaActual === item.id} onClick={() => navigate(item.id)} />
+              ))}
 
-            {/* Fila principal */}
-            <div className="flex justify-around items-center h-16">
-              <NavButton icon={<ChartBarIcon className="w-5 h-5" />}   label="Dashboard" active={vistaActual === 'dashboard'}  onClick={() => setVistaActual('dashboard')} />
-              <NavButton icon={<BanknotesIcon className="w-5 h-5" />}  label="Cuentas"   active={vistaActual === 'cuentas'}    onClick={() => setVistaActual('cuentas')} />
-
-              {/* FAB */}
-              <button onClick={() => handleNuevaTransaccion()} className="flex flex-col items-center justify-center flex-1 h-full transition-premium">
-                <div className="bg-gradient-silver text-dark-bg rounded-full w-12 h-12 flex items-center justify-center shadow-glow-silver hover:shadow-glow-silver-lg transition-premium hover-scale mb-0.5">
+              {/* FAB central */}
+              <div className="flex flex-col items-center justify-end pb-2 flex-1">
+                <button
+                  onClick={handleFAB}
+                  className="bg-gradient-silver text-dark-bg rounded-full w-12 h-12 flex items-center justify-center shadow-glow-silver hover:shadow-glow-silver-lg transition-premium hover-scale mb-0.5"
+                >
                   <PlusIcon className="w-6 h-6" />
-                </div>
-                <span className="text-[10px] font-medium text-silver-dim">Agregar</span>
-              </button>
+                </button>
+                <span className="text-[9px] font-semibold text-silver-dim tracking-widest">
+                  {navActivo?.fabLabel || 'AGREGAR'}
+                </span>
+              </div>
 
-              <NavButton icon={<BriefcaseIcon className="w-5 h-5" />}  label="Negocios"  active={vistaActual === 'negocios'}   onClick={() => setVistaActual('negocios')} />
-              <NavButton icon={<FolderOpenIcon className="w-5 h-5" />} label="Proyectos" active={vistaActual === 'proyectos'}  onClick={() => setVistaActual('proyectos')} />
+              {/* Items derechos */}
+              {NAV_ITEMS.slice(2).map(item => (
+                <NavItem key={item.id} item={item} active={vistaActual === item.id} onClick={() => navigate(item.id)} />
+              ))}
+
             </div>
           </div>
         </nav>
       )}
 
-      {/* ── Modal tipo transacción ── */}
+      {/* ── Modales ── */}
       {mostrarModalTipo && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-40 p-4 animate-fadeIn"
-          onClick={() => setMostrarModalTipo(false)}>
-          <div className="glass-card rounded-premium shadow-elevation-3 p-6 max-w-sm w-full border border-silver/10 animate-slideUp"
-            onClick={e => e.stopPropagation()}>
-            <h2 className="font-display text-xl font-semibold mb-2 text-silver tracking-widest">NUEVA TRANSACCIÓN</h2>
-            <p className="text-dark-textSecondary text-sm mb-6">¿Qué deseas registrar?</p>
-            <div className="space-y-3">
-              <button onClick={() => { setVistaActual('nuevoIngreso'); setMostrarModalTipo(false); }}
-                className="w-full btn-premium text-center py-4 text-sm tracking-widest">
-                ↑&nbsp;&nbsp;INGRESO
-              </button>
-              <button onClick={() => { setVistaActual('nuevoGasto'); setMostrarModalTipo(false); }}
-                className="w-full bg-silver-muted text-silver-bright py-4 rounded-button font-semibold hover:bg-silver-deep transition-premium shadow-elevation-1 tracking-widest text-sm">
-                ↓&nbsp;&nbsp;GASTO
-              </button>
-              <button onClick={() => setMostrarModalTipo(false)}
-                className="w-full bg-dark-bgSecondary text-dark-textSecondary py-4 rounded-button font-semibold border border-white/[0.06] text-sm">
-                Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModalTipoTransaccion
+          onIngreso={() => { navigate('nuevoIngreso'); setMostrarModalTipo(false); }}
+          onGasto={()   => { navigate('nuevoGasto');  setMostrarModalTipo(false); }}
+          onCerrar={() => setMostrarModalTipo(false)}
+        />
       )}
 
-      {/* ── Modal ahorro % ── */}
       {mostrarModalAhorro && (
         <ModalAhorro
           porcentaje={config.porcentajeAhorro}
@@ -357,22 +452,30 @@ function App() {
   );
 }
 
-const NavButton = ({ icon, label, active, onClick }) => (
-  <button onClick={onClick}
-    className={`flex flex-col items-center justify-center flex-1 h-full transition-premium ${
-      active ? 'text-silver' : 'text-dark-textSecondary hover:text-silver-dark'
-    }`}>
-    {icon}
-    <span className="text-[10px] font-medium mt-0.5">{label}</span>
-  </button>
-);
+// ── Componente NavItem ────────────────────────────────────────────────────
+const NavItem = ({ item, active, onClick }) => (
+  <button
+    onClick={onClick}
+    className="flex flex-col items-center justify-end pb-2 flex-1 h-full relative transition-premium group"
+  >
+    {/* Indicador activo: línea superior */}
+    <span className={`absolute top-0 left-1/2 -translate-x-1/2 h-[2px] rounded-full transition-all duration-300 ${
+      active ? 'w-8 bg-silver/60' : 'w-0 bg-transparent'
+    }`} />
 
-const NavSmall = ({ label, active, onClick }) => (
-  <button onClick={onClick}
-    className={`flex-1 py-2 text-[10px] font-semibold tracking-widest transition-premium ${
-      active ? 'text-silver border-b-2 border-silver/40' : 'text-dark-textSecondary hover:text-silver-dim'
+    {/* Ícono */}
+    <span className={`transition-all duration-200 mb-0.5 ${
+      active ? 'text-silver scale-110' : 'text-dark-textSecondary group-hover:text-silver-dim'
     }`}>
-    {label.toUpperCase()}
+      {active ? item.iconSolid : item.iconOutline}
+    </span>
+
+    {/* Label */}
+    <span className={`text-[9px] font-semibold tracking-wide transition-colors duration-200 ${
+      active ? 'text-silver' : 'text-dark-textSecondary group-hover:text-silver-dim'
+    }`}>
+      {item.label.toUpperCase()}
+    </span>
   </button>
 );
 

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PencilIcon, TrashIcon, PlusIcon, CheckIcon, XMarkIcon,
   BriefcaseIcon, ChevronDownIcon, ChevronUpIcon,
@@ -52,7 +52,12 @@ const calcGananciaPago = (pago, porcentajeNegocio) => {
   return fact * pct / 100;
 };
 
-export default function Negocios({ negocios, onNegociosChange }) {
+export default function Negocios({ negocios, onNegociosChange, addNewSignal = 0 }) {
+  // Abrir formulario "nuevo negocio" cuando el FAB lo señala
+  useEffect(() => {
+    if (addNewSignal > 0) { setMostrarNuevo(true); window.scrollTo({ top: 99999, behavior: 'smooth' }); }
+  }, [addNewSignal]);
+
   const [expandido,    setExpandido]    = useState(null);
   const [editando,     setEditando]     = useState(null);   // id negocio
   const [editTemp,     setEditTemp]     = useState({});

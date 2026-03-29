@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PencilIcon, CheckIcon, XMarkIcon, PlusIcon, TrashIcon,
   ArrowsRightLeftIcon, BanknotesIcon, Cog6ToothIcon,
@@ -78,7 +78,16 @@ const calcRetenido = (cuenta) => {
 const calcDisponible = (cuenta) => Math.max(0, Number(cuenta.saldo) - calcRetenido(cuenta));
 
 // ─── Componente principal ──────────────────────────────────────────────────
-export default function Cuentas({ config, onConfigChange, cuentas, onCuentasChange }) {
+export default function Cuentas({ config, onConfigChange, cuentas, onCuentasChange, addNewSignal = 0 }) {
+  // FAB signal → abrir formulario nueva cuenta
+  useEffect(() => {
+    if (addNewSignal > 0) {
+      setTab('cuentas');
+      setMostrarNuevaCuenta(true);
+      setTimeout(() => window.scrollTo({ top: 99999, behavior: 'smooth' }), 100);
+    }
+  }, [addNewSignal]);
+
   const [tab, setTab] = useState('cuentas');
 
   // Estado saldo
